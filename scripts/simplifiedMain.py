@@ -1,9 +1,10 @@
 """
+DEPRECATED
 This script is the entire game runner, 
     consist of main loop that triggers individual scene loops that goes on until termination
 """
 #imports
-from UIclasses import *
+from scripts.UI import *
 import pygame
 from random import choice
 from sys import exit

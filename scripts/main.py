@@ -10,9 +10,8 @@ Animation
 Images
 Cross platform compatibility
 """
-from UIclasses import *
+from scripts.UI import *
 import pygame
-import soundfile as sf
 from random import choice
 from sys import exit as end
 
