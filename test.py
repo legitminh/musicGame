@@ -15,12 +15,8 @@ Cross platform compatibility
 """
 from UIclasses import *
 import pygame
-import soundfile as sf
 import random
 from sys import exit as end
-import sys
-import concurrent.futures
-import time
 songs = {0: 'Musics/Hot Cross Buns.wav', 1: 'Musics/Twinkle Twinkle Little Star.wav', 2: 'Musics/Happy Birthday.wav',
          3: 'Musics/Jingle Bells.wav', 4: 'Musics/Fur Elise.wav', 5: 'Musics/La Campanella.wav'}
 requirements = {
@@ -36,6 +32,12 @@ invrequirements = {v: k for k, v in requirements.items()}
 pygame.init()
 screen = pygame.display.set_mode([799, 500], pygame.RESIZABLE)
 screen.fill('dark gray')
+
+pygame.display.set_caption("Typing piano")
+
+img = pygame.image.load('Checkered pattern.png')
+pygame.display.set_icon(img)
+
 clock = pygame.time.Clock()
 volume = .2
 high_scores = {}
