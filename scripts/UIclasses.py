@@ -218,3 +218,7 @@ class ScrollBar(pygame.sprite.Sprite):
             self.rect.left = self.pos[0]
         elif self.alignment == AlignmentTypes.r:
             self.rect.right = self.pos[0]
+def make_text(x, y, what, t_size=30, color='blue'):
+    if y > 0:
+        text = pygame.font.Font('Fonts/Roboto-Light.ttf', t_size).render(str(what), True, color)
+        screen.blit(text, text.get_rect(center=(x, y)))
