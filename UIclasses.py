@@ -1,5 +1,6 @@
 import pygame
 from enum import Enum
+from typing import Callable
 
 
 class Button(pygame.sprite.Sprite):
@@ -7,7 +8,7 @@ class Button(pygame.sprite.Sprite):
     def __init__(self,
                  surface,
                  pos: tuple[int | float] | list[int | float],
-                 mode_c: str | int,
+                 mode_c: Callable | None,
                  text=None,
                  text_size=None, *,
                  color=(150, 150, 150),
