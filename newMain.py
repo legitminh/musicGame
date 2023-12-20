@@ -44,13 +44,11 @@ mode_type = tuple[Callable, list[parameters]]
 
 
 def main():
-    mode: mode_type #mode is a function in the gameplay loop with certain parameters, this defines what is happenining in the game
-    
-    mode = (intro, [])
+    screen: mode_type  = (intro, [])
 
     file_reader()
-    while True:  # Playing >> End screen
-        mode = mode[0](*mode[1])
+    while True:
+        screen = screen[0](*screen[1])
 
 
 def intro() -> mode_type:
