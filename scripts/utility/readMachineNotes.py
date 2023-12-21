@@ -7,7 +7,7 @@ def note_extractor(which_level, slow_down) -> list[list[str, float, float, bool]
     notes = []
     multi = 1 * slow_down
     hold_threshold = 1
-    with open(f'../MachineNotes/{which_level}.txt') as f:
+    with open(f'MachineNotes/{which_level}.txt') as f:
         times = f.read().count('\n')
         f.seek(0)
         for _ in range(times):
