@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Any
 from enum import Enum
 
 
@@ -9,13 +9,10 @@ class ExitException(Exception):
     pass
 
 
-class Screens(Enum):
+class ScreenID(Enum):
     intro = 1
     menu = 2
-    leveOptions = 3
+    levelOptions = 3
     level = 4
     outro = 5
     option = 6
-
-parameters = str | int | float
-mode_type = tuple[Screens, dict[str, parameters]]

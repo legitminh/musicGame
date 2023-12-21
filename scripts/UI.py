@@ -1,6 +1,6 @@
 import pygame
 from enum import Enum
-from typing import Callable
+from interfaces import ScreenID
 from abc import abstractmethod
 
 
@@ -9,7 +9,7 @@ class Button(pygame.sprite.Sprite):
     def __init__(self,
                  surface,
                  pos: tuple[int | float] | list[int | float],
-                 mode_c: Callable | None,
+                 mode_c: ScreenID | None,
                  text=None,
                  text_size=None, *,
                  color=(150, 150, 150),
@@ -222,16 +222,24 @@ class ScrollBar(pygame.sprite.Sprite):
 
 
 class Screen:
-    def __init__(self, screen, **kwargs) -> None:
+    def __init__(self, screen, clock, **kwargs) -> None:
         self.screen = screen
+        self.clock = clock
         self.__dict__.update(kwargs)
     
     @abstractmethod
-    def loop(): ...
+    def loop() -> ScreenID: ...
+
 
 def draw_rect_alpha(surface, color, rect):
     if pygame.Rect(rect).bottom > 0:
         shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
         pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
         surface.blit(shape_surf, rect)
+
+
+def make_text(screen, x, y, what, t_size=29, color='blue'):
+    if y > -1:
+        text = pygame.font.Font('Fonts/Roboto-Light.ttf', t_size).render(str(what), True, color)
+        screen.blit(text, text.get_rect(center=(x, y)))
         return True

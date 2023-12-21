@@ -7,36 +7,24 @@ This file is the scene manager and highest level runner
 4. automatic song generation
     - convert mp3/wav -> machine notes
 """
-from scripts.UI import *
+
 import pygame
-from typing import Callable
 from screens.intro import Intro
 from screens.level import Level
 from screens.levelOptions import LevelOptions
 from screens.menu import Menu
 from screens.options import Options
 from screens.outro import Outro
-from scripts.interfaces import *
+from UI import *
+from interfaces import *
 
-songs = {0: '../Musics/Hot Cross Buns.wav', 1: '../Musics/Twinkle Twinkle Little Star.wav', 2: '../Musics/Happy Birthday.wav',
-         3: '../Musics/Jingle Bells.wav', 4: '../Musics/Fur Elise.wav', 5: '../Musics/La Campanella.wav'}
-# required amount of stars for each level
-requirements = {
-    0: 0,
-    1: 3,
-    2: 5,
-    3: 6,
-    4: 7,
-    5: 8
-}
-# requirments is max amount with normal levels availible
-invrequirements = {v: k for k, v in requirements.items()}
+
 pygame.init()
 screen = pygame.display.set_mode([799, 500], pygame.RESIZABLE)
 
 pygame.display.set_caption("Typing piano")
 
-img = pygame.image.load('Checkered pattern.png')
+img = pygame.image.load('Assets/Checkered pattern.png')
 pygame.display.set_icon(img)
 
 screen.fill('dark gray')
@@ -48,35 +36,31 @@ high_scores = {}
 
 
 def main():
-    screen_redirect: mode_type  = (Screens.intro, {})
-    conversion_table = {
-        Screens.menu: Menu, 
-        Screens.intro: Intro, 
-        Screens.option: Options, 
-        Screens.level: Level, 
-        Screens.outro: Outro, 
-        Screens.leveOptions: LevelOptions, 
+    screen_redirect: ScreenID = ScreenID.intro
+    conversion_table: dict[ScreenID, Screen] = {
+        ScreenID.intro:        Intro,        # Kwargs: None
+        ScreenID.option:       Options,      # Kwargs: volume
+        ScreenID.menu:         Menu,         # Kwargs: high_scores
+        ScreenID.levelOptions: LevelOptions, # Kwargs: high_scores, song_id
+        ScreenID.level:        Level,        # Kwargs: volume, song_id, slowdown
+        ScreenID.outro:        Outro,        # Kwargs: song_id, score, slowdown, high_scores
     }
+    TARGET_KWARGS = ['volume', 'high_scores', 'song_id', 'slowdown', 'score']
+    stored_kwargs = {'volume': volume, 'high_scores': high_scores}
 
     file_reader()
     while True:
         try:
-            screen_redirect = conversion_table[screen_redirect[0]](screen, **screen_redirect[1]).level()
+            obj: Screen = conversion_table[screen_redirect](screen, clock, **stored_kwargs)
+            screen_redirect = obj.loop()
+            for key in obj.__dict__:
+                if key in TARGET_KWARGS:
+                    stored_kwargs[key] = obj.__dict__[key]
         except ExitException:
             file_writer()
             pygame.quit()
             exit()
 
-
-def update_high_scores(level_num, score, slow_down):
-    print(slow_down)
-    if slow_down < 1:
-        return 
-    if str(level_num) not in high_scores:
-        high_scores[str(level_num)] = score
-    if score > high_scores[str(level_num)]:
-        high_scores[str(level_num)] = score
-    
 
 def file_writer() -> None: #save notes into file 
     with open('PlayerData', mode='w') as f:
