@@ -1,6 +1,7 @@
 import pygame
 from interfaces import *
-from UI import Button, Screen
+from UI import Button
+from .screen import Screen
 from constants import *
 
 class Outro(Screen):
@@ -18,7 +19,7 @@ class Outro(Screen):
         
         outro_l = [Button(self.screen, [self.screen.get_width() / 2, self.screen.get_height() // 2 + 50], self.song_id, 'Play again', 30),
                 Button(self.screen, [self.screen.get_width() / 2, self.screen.get_height() // 2 - 50], '',
-                        f'You self.scored {self.score:.2f}% on {directory[directory.find("/") + 1:directory.find(".")]}',
+                        f'You scored {self.score:.2f}% on {directory[directory.find("/") + 1:directory.find(".")]}',
                         30),
                 Button(self.screen, [self.screen.get_width() / 2, self.screen.get_height() // 2 + 110], ScreenID.menu,
                         'Return to level selection', 30)]
@@ -54,5 +55,6 @@ class Outro(Screen):
             return 
         if str(self.song_id) not in self.high_scores:
             self.high_scores[str(self.song_id)] = self.score
+            return
         if self.score > self.high_scores[str(self.song_id)]:
             self.high_scores[str(self.song_id)] = self.score

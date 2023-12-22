@@ -1,7 +1,6 @@
 import pygame
 from enum import Enum
 from interfaces import ScreenID
-from abc import abstractmethod
 
 
 class Button(pygame.sprite.Sprite):
@@ -219,16 +218,6 @@ class ScrollBar(pygame.sprite.Sprite):
             self.rect.left = self.pos[0]
         elif self.alignment == AlignmentTypes.r:
             self.rect.right = self.pos[0]
-
-
-class Screen:
-    def __init__(self, screen, clock, **kwargs) -> None:
-        self.screen = screen
-        self.clock = clock
-        self.__dict__.update(kwargs)
-    
-    @abstractmethod
-    def loop() -> ScreenID: ...
 
 
 def draw_rect_alpha(surface, color, rect):

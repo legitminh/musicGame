@@ -1,6 +1,7 @@
 import pygame
 from interfaces import *
-from UI import Button, Screen
+from UI import Button
+from .screen import Screen
 from constants import *
 
 class LevelOptions(Screen):

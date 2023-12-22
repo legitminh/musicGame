@@ -9,11 +9,12 @@ This file is the scene manager and highest level runner
 """
 
 import pygame
+from screens.screen import Screen
 from screens.intro import Intro
-from screens.level import Level
-from screens.levelOptions import LevelOptions
-from screens.menu import Menu
 from screens.options import Options
+from screens.menu import Menu
+from screens.levelOptions import LevelOptions
+from screens.level import Level
 from screens.outro import Outro
 from UI import *
 from interfaces import *

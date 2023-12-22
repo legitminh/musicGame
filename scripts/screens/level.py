@@ -2,7 +2,8 @@ import pygame
 from interfaces import *
 from utility.readMachineNotes import note_extractor
 from random import choice
-from UI import make_text, draw_rect_alpha, Screen
+from UI import make_text, draw_rect_alpha
+from .screen import Screen
 from constants import *
 
 
@@ -196,7 +197,7 @@ class Level(Screen):
             'r': '4rfv',
             't': '5tgb',
             'y': '8uhy',
-            'u': '9ijn',
+            'u': '(IJN',
             'i': '0okm',
             'o': '-pl,',
             'p': '=[;.',

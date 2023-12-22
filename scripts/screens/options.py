@@ -1,6 +1,7 @@
 import pygame
 from interfaces import *
-from UI import Button, Screen, ScrollBar
+from UI import Button, ScrollBar
+from .screen import Screen
 from constants import *
 
 class Options(Screen):

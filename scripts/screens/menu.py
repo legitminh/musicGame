@@ -1,6 +1,7 @@
 import pygame
 from interfaces import *
-from UI import Button, Screen, ScrollBar
+from UI import Button, ScrollBar
+from .screen import Screen
 from constants import *
 
 
@@ -16,12 +17,9 @@ class Menu(Screen):
         high_score_g = pygame.sprite.Group()
         high_score_l = []
         for _i in range(level_amount):
-            try:
-                name = self.high_scores[str(_i)]
-            except KeyError:
-                name = 0
+            score = self.get_score(_i)
             high_score_l.append(
-                Button(self.screen, [self.screen.get_width() - 100, _i * 60 + 95 - up], _i, round(float(name), 2), 30, alignment_pos='topright')
+                Button(self.screen, [self.screen.get_width() - 100, _i * 60 + 95 - up], _i, round(float(score), 2), 30, alignment_pos='topright')
             )
         high_score_g.add(high_score_l)
         # star
@@ -29,35 +27,8 @@ class Menu(Screen):
         stars_l = []
         stars = 0
         for _i in range(level_amount):
-            try:
-                if 0 <= self.high_scores[str(_i)] < 50:
-                    star = 0
-                elif self.high_scores[str(_i)] < 75:
-                    star = 1
-                elif self.high_scores[str(_i)] < 90:
-                    star = 2
-                elif self.high_scores[str(_i)] < 100:
-                    star = 3
-                else:
-                    star = 5
-            except KeyError:
-                star = 0
-            try:
-                _i = str(_i) + 'e'
-                if 0 <= self.high_scores[str(_i)] < 50:
-                    star += 0
-                elif self.high_scores[str(_i)] < 75:
-                    star += 1
-                elif self.high_scores[str(_i)] < 90:
-                    star += 2
-                elif self.high_scores[str(_i)] < 100:
-                    star += 3
-                else:
-                    star += 5
-            except KeyError:
-                star += 0
+            star = self.calc_stars(_i)
             stars += star
-            _i = int(_i.replace('e', ''))
             stars_l.append(
                 Button(self.screen, [self.screen.get_width(), _i * 60 + 95 - up], None, star, 30, path='Assets/star.png',
                     dim=(59, 59), alignment_pos='topright')
@@ -85,9 +56,11 @@ class Menu(Screen):
             except KeyError:  # if song doesn't exist
                 locked = True
                 directory = "/To be discovered."
+                lock_l.append(Button(self.screen, [10, _i * 60 + 95 - up], None, REQUIREMENTS[_i], 30, alignment_pos='topleft',
+                                        path='Assets/lock.png', dim=(59, 59)))
             name = directory[directory.find("/") + 1:directory.find(".")]
             level_select_l.append(
-                Button(self.screen, [100, _i * 60 + 95 - up], "To be discovered" if locked else _i, name, 30, alignment_pos='topleft'))
+                Button(self.screen, [100, _i * 60 + 95 - up], None if locked else _i, "To be discovered" if locked else name, 30, alignment_pos='topleft'))
         lock_g.add(lock_l)
         level_select_g.add(level_select_l)
         # slider
@@ -177,3 +150,19 @@ class Menu(Screen):
                 slider_g.draw(self.screen)
             pygame.display.update()
             self.clock.tick(FRAME_RATE)
+
+    def get_score(self, _i):
+        if str(_i) not in self.high_scores:
+            score = 0
+        else:
+            score = self.high_scores[str(_i)]
+        if str(_i) + 'e' in self.high_scores:
+            score += self.high_scores[str(_i) + 'e']
+        return score
+
+    def calc_stars(self, _i):
+        high_score = self.get_score(_i)
+        for score, stars in SCORE2STARS.items():
+            if high_score <= score:
+                return stars
+        
