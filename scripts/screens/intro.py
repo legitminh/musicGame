@@ -40,5 +40,5 @@ class Intro(Screen):
         x, y = pygame.mouse.get_pos()
         for i, sprite in enumerate(self.intro_g.sprites()):
             if sprite.rect.collidepoint(x, y):
-                return self.intro_l[i].mode_c
+                return Redirect(self.intro_l[i].mode_c)
         return None

@@ -16,3 +16,9 @@ class ScreenID(Enum):
     level = 4
     outro = 5
     option = 6
+
+
+class Redirect:
+    def __init__(self, redirect_screen: ScreenID, **kwargs) -> None:
+        self.redirect_screen = redirect_screen
+        self.params = kwargs

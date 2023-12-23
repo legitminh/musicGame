@@ -24,7 +24,7 @@ class Options(Screen):
                 if event.type == pygame.QUIT:
                     raise ExitException()
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    return ScreenID.intro
+                    return Redirect(ScreenID.intro, volume=self.volume)
                 elif event.type == pygame.VIDEORESIZE:
                     self._video_resize()
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:

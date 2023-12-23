@@ -5,6 +5,10 @@ from .screen import Screen
 from constants import *
 
 class Outro(Screen):
+    high_scores: dict[str, float]
+    slowdown: float
+    score: float
+
     def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs):
         super().__init__(screen, clock, **kwargs)
         self._buttons_init()
@@ -16,7 +20,7 @@ class Outro(Screen):
                 if event.type == pygame.QUIT:
                     raise ExitException()
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    return ScreenID.menu
+                    return Redirect(ScreenID.menu, high_score=self.high_scores)
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     ret_val = self._button_clicked()
                     if ret_val is not None:
@@ -52,9 +56,8 @@ class Outro(Screen):
             if not (isinstance(self.outro_l[i].mode_c, int) or self.outro_l[i].mode_c):
                 break
             if isinstance(self.outro_l[i].mode_c, str | int):
-                self.song_id = self.outro_l[i].mode_c
-                return ScreenID.level
-            return self.outro_l[i].mode_c
+                return Redirect(ScreenID.level, song_id=self.outro_l[i].mode_c)
+            return Redirect(self.outro_l[i].mode_c)
 
     def _update_high_scores(self):
         if self.slowdown < 1:

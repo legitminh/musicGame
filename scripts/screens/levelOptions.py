@@ -5,9 +5,11 @@ from .screen import Screen
 from constants import *
 
 class LevelOptions(Screen):
+    high_scores: dict[str, float]
+
     def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs):
         super().__init__(screen, clock, **kwargs)
-        self.song_id = str(self.song_id)
+        self.song_id = str(self.song_id).replace('e', '')
         self.slowdown = 1
         self._mode_buttons_init()
         self._lock_init()
@@ -20,7 +22,7 @@ class LevelOptions(Screen):
                 elif event.type == pygame.VIDEORESIZE:
                     self._video_resize()
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    return ScreenID.menu
+                    return Redirect(ScreenID.menu)
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     ret_val = self._button_clicked()
                     if ret_val is not None:
@@ -66,13 +68,9 @@ class LevelOptions(Screen):
                 self._change_slowdown(i)
                 break
             if self.modes_l[i].mode_c in SONGS:
-                self.slowdown = self.slowdown
-                self.song_id = self.modes_l[i].mode_c
-                return ScreenID.level
+                return Redirect(ScreenID.level, slowdown=self.slowdown, song_id=self.song_id)
             if self.song_id in self.high_scores:
-                self.slowdown = self.slowdown
-                self.song_id = self.modes_l[i].mode_c
-                return ScreenID.level
+                return Redirect(ScreenID.level, slowdown=self.slowdown, song_id=self.song_id + 'e')
             break
 
     def _change_slowdown(self, sprite_i):

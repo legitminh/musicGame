@@ -37,7 +37,7 @@ high_scores: dict[str, float] = {}
 
 
 def main():
-    screen_redirect: ScreenID = ScreenID.intro
+    redirect: Redirect = Redirect(ScreenID.intro)
     conversion_table: dict[ScreenID, Screen] = {
         ScreenID.intro:        Intro,        # Kwargs: None
         ScreenID.option:       Options,      # Kwargs: volume
@@ -46,17 +46,14 @@ def main():
         ScreenID.level:        Level,        # Kwargs: volume, song_id, slowdown
         ScreenID.outro:        Outro,        # Kwargs: song_id, score, slowdown, high_scores
     }
-    TARGET_KWARGS = ['volume', 'high_scores', 'song_id', 'slowdown', 'score']
     stored_kwargs = {'volume': volume, 'high_scores': high_scores}
 
     file_reader()
     while True:
         try:
-            obj: Screen = conversion_table[screen_redirect](screen, clock, **stored_kwargs)
-            screen_redirect = obj.loop()
-            for key in obj.__dict__:
-                if key in TARGET_KWARGS:
-                    stored_kwargs[key] = obj.__dict__[key]
+            obj: Screen = conversion_table[redirect.redirect_screen](screen, clock, **stored_kwargs)
+            redirect = obj.loop()
+            stored_kwargs.update(redirect.params)
         except ExitException:
             file_writer()
             pygame.quit()

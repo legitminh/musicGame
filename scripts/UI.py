@@ -1,6 +1,6 @@
 import pygame
 from enum import Enum
-from interfaces import ScreenID
+from typing import Any
 
 
 class Button(pygame.sprite.Sprite):
@@ -8,7 +8,7 @@ class Button(pygame.sprite.Sprite):
     def __init__(self,
                  surface,
                  pos: tuple[int | float] | list[int | float],
-                 mode_c: ScreenID | None,
+                 mode_c: Any,
                  text=None,
                  text_size=None, *,
                  color=(150, 150, 150),

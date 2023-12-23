@@ -11,7 +11,6 @@ class Menu(Screen):
     mouse_down = False
     slider_velocity = 0
     prev_time = pygame.time.get_ticks()
-
         
     def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs):
         super().__init__(screen, clock, **kwargs)
@@ -31,7 +30,7 @@ class Menu(Screen):
                 elif event.type == pygame.VIDEORESIZE:
                     self._video_resize()
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    return ScreenID.intro
+                    return Redirect(ScreenID.intro)
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         res_val = self._left_click()
@@ -117,7 +116,7 @@ class Menu(Screen):
         for i, sprite in enumerate(self.level_select_g.sprites()):
             if sprite.rect.collidepoint(clicked_pos) and isinstance(self.level_select_l[i].mode_c, int):
                 self.song_id = str(self.level_select_l[i].mode_c)
-                return ScreenID.levelOptions
+                return Redirect(ScreenID.levelOptions, song_id=self.song_id)
         if self.slider.back_rect.collidepoint(clicked_pos):
             self.mouse_down = True
             self.dy = self.slider.click_drag(clicked_pos)

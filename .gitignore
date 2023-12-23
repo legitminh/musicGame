@@ -2,8 +2,9 @@
 /shelf/
 /workspace.xml
 # Byte-compiled / optimized / DLL files
-__pycache__/
+*/__pycache__/
 *.py[cod]
+*.pyc
 *$py.class
 
 # C extensions
@@ -179,3 +180,6 @@ atlassian-ide-plugin.xml
 
 # SonarLint plugin
 .idea/sonarlint/
+scripts/screens/__pycache__/intro.cpython-311.pyc
+scripts/screens/__pycache__/intro.cpython-311.pyc
+scripts/screens/__pycache__/intro.cpython-311.pyc
