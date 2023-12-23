@@ -6,152 +6,176 @@ from constants import *
 
 
 class Menu(Screen):
+    level_amount = 10
+    dy = 0
+    mouse_down = False
+    slider_velocity = 0
+    prev_time = pygame.time.get_ticks()
+
+        
+    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs):
+        super().__init__(screen, clock, **kwargs)
+
+        self._high_scores_init()
+        self._stars_init()
+        self._misc_init()
+        
+        self._level_init()
+        self._slider_init()
+    
     def loop(self):
-        """
-        params: screen, clock
-        **kwargs: high_scores        
-        """
-        # high score
-        level_amount = 10
-        up = 0
-        high_score_g = pygame.sprite.Group()
-        high_score_l = []
-        for _i in range(level_amount):
-            score = self.get_score(_i)
-            high_score_l.append(
-                Button(self.screen, [self.screen.get_width() - 100, _i * 60 + 95 - up], _i, round(float(score), 2), 30, alignment_pos='topright')
-            )
-        high_score_g.add(high_score_l)
-        # star
-        stars_g = pygame.sprite.Group()
-        stars_l = []
-        stars = 0
-        for _i in range(level_amount):
-            star = self.calc_stars(_i)
-            stars += star
-            stars_l.append(
-                Button(self.screen, [self.screen.get_width(), _i * 60 + 95 - up], None, star, 30, path='Assets/star.png',
-                    dim=(59, 59), alignment_pos='topright')
-            )
-        stars_g.add(stars_l)
-        # self.screen title and stars N
-        others_g = pygame.sprite.Group()
-        others_l = [
-            Button(self.screen, [self.screen.get_width() / 2, 50], None, 'Choose a Level!', 50),
-            Button(self.screen, [self.screen.get_width(), 10], None, stars, 50, alignment_pos='topright')
-        ]
-        others_g.add(others_l)
-        # songs and locks display
-        level_select_g = pygame.sprite.Group()
-        level_select_l = []
-        lock_g = pygame.sprite.Group()
-        lock_l = []
-        for _i in range(level_amount):
-            try:  # if song is written
-                locked = REQUIREMENTS[_i] > stars
-                directory = SONGS[_i]
-                if locked:
-                    lock_l.append(Button(self.screen, [10, _i * 60 + 95 - up], None, REQUIREMENTS[_i], 30, alignment_pos='topleft',
-                                        path='Assets/lock.png', dim=(59, 59)))
-            except KeyError:  # if song doesn't exist
-                locked = True
-                directory = "/To be discovered."
-                lock_l.append(Button(self.screen, [10, _i * 60 + 95 - up], None, REQUIREMENTS[_i], 30, alignment_pos='topleft',
-                                        path='Assets/lock.png', dim=(59, 59)))
-            name = directory[directory.find("/") + 1:directory.find(".")]
-            level_select_l.append(
-                Button(self.screen, [100, _i * 60 + 95 - up], None if locked else _i, "To be discovered" if locked else name, 30, alignment_pos='topleft'))
-        lock_g.add(lock_l)
-        level_select_g.add(level_select_l)
-        # slider
-        slider = ScrollBar(self.screen, [0, 100], [10, self.screen.get_height()], [10, 50], 'black', 'dark gray')
-        slider_g = pygame.sprite.GroupSingle(slider)
-        velocity = 0
-        last_time = pygame.time.get_ticks()
-        total_len = level_select_l[-1].rect.bottom - level_select_l[0].rect.top - self.screen.get_height() + 100
-        index = 1 if slider.orientation == 'vertical' else 0
-        slider_step_size = (slider.end_pos[index] - slider.start_pos[index] - slider.dim[index]) / total_len
-        slider.step_size = slider_step_size
-        level_select_g.add(level_select_l)
-        mouse_down = False
         while True:
-            dt = (pygame.time.get_ticks() - last_time) / 1000
-            dt *= 60
-            last_time = pygame.time.get_ticks()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     raise ExitException()
                 elif event.type == pygame.VIDEORESIZE:
-                    slider.end_pos = [10, self.screen.get_height()]
-                    slider.update(screen_change=True)
-                    total_len = level_select_l[-1].rect.bottom - level_select_l[0].rect.top - self.screen.get_height() + 100
-                    index = 1 if slider.orientation == 'vertical' else 0
-                    slider_step_size = (slider.end_pos[index] - slider.start_pos[index] - slider.dim[index]) / total_len
-                    slider.step_size = slider_step_size
-                    others_l[0].rect.center = [self.screen.get_width() / 2, 50]
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        return ScreenID.intro
+                    self._video_resize()
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    return ScreenID.intro
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
-                        clicked_pos = pygame.mouse.get_pos()
-                        for i in range(len(level_select_g.sprites())):
-                            s = level_select_g.sprites()[i]
-                            if s.rect.collidepoint(clicked_pos) and isinstance(level_select_l[i].mode_c, int):
-                                self.song_id = str(level_select_l[i].mode_c)
-                                return ScreenID.levelOptions
-                        if slider.back_rect.collidepoint(clicked_pos):
-                            mouse_down = True
-                            up = slider.click_drag(clicked_pos)
+                        res_val = self._left_click()
+                        if res_val is not None:
+                            return res_val
                     elif event.button == 4:
-                        velocity -= dt * 4
+                        self.slider_velocity -= dt * 4
                     elif event.button == 5:
-                        velocity += dt * 4
+                        self.slider_velocity += dt * 4
                 elif event.type == pygame.MOUSEBUTTONUP:
-                    mouse_down = False
-            if mouse_down:
-                up = slider.click_drag(pygame.mouse.get_pos())
-            if total_len > 0:
-                velocity *= .9
-                if abs(velocity) < 1:
-                    velocity = 0
-                up += velocity
-                if up < 0:
-                    up = 0
-                    velocity = 0
-                elif up > total_len:
-                    up = total_len
-                    velocity = 0
-                slider.rect.topleft = slider.rect.topleft[0], up * slider_step_size + slider.start_pos[1]
-            else:
-                up = 0
-            for i, sprite in enumerate(level_select_l):
-                sprite.set_pos((84, i * 60 + 95 - up))
-            width = self.screen.get_width()
-            for i, sprite in enumerate(high_score_l):
-                sprite.set_pos((width - 100, i * 60 + 95 - up))
-            for i, sprite in enumerate(stars_l):
-                sprite.set_pos((width - 40, i * 60 + 93 - up))
-            for i, sprite in enumerate(lock_l):
-                sprite.set_pos((15, INVREQUIREMENTS[int(sprite.text)] * 60 + 95 - up))
-            self.screen.fill('light gray')
-            height = self.screen.get_height()
-            to_draw = pygame.sprite.Group()
-            for sprite in level_select_g.sprites() + high_score_g.sprites() + stars_g.sprites() + lock_g.sprites():
-                if height > sprite.rect.top and sprite.rect.bottom > 95:
-                    to_draw.add(sprite)
-            to_draw.draw(self.screen)
-            to_draw.update()
-            pygame.draw.rect(self.screen, 'light gray', (0, 0, width, 95))
-            others_g.draw(self.screen)
-            others_g.update()
-            if total_len > 0:
-                slider_g.update()
-                slider_g.draw(self.screen)
-            pygame.display.update()
-            self.clock.tick(FRAME_RATE)
+                    self.mouse_down = False
+            dt = (pygame.time.get_ticks() - self.prev_time) / 1000
+            dt *= 60
+            self.prev_time = pygame.time.get_ticks()
+            
+            self._slider_update()
+            self._draw()
 
-    def get_score(self, _i):
+    def _level_init(self):
+        self.level_select_g = pygame.sprite.Group()
+        self.level_select_l = []
+
+        self.lock_g = pygame.sprite.Group()
+        self.lock_l = []
+        for _i in range(self.level_amount):
+            try:  # if song is written
+                locked = REQUIREMENTS[_i] > self.star_count
+                directory = SONGS[_i]
+                if locked:
+                    self.lock_l.append(Button(self.screen, [10, _i * 60 + 95 - self.dy], None, REQUIREMENTS[_i], 30, alignment_pos='topleft',
+                                        path='Assets/lock.png', dim=(59, 59)))
+            except KeyError:  # if song doesn't exist
+                locked = True
+                directory = "/To be discovered."
+                self.lock_l.append(Button(self.screen, [10, _i * 60 + 95 - self.dy], None, REQUIREMENTS[_i], 30, alignment_pos='topleft',
+                                        path='Assets/lock.png', dim=(59, 59)))
+            name = directory[directory.find("/") + 1:directory.find(".")]
+            self.level_select_l.append(
+                Button(self.screen, [100, _i * 60 + 95 - self.dy], None if locked else _i, "To be discovered" if locked else name, 30, alignment_pos='topleft'))
+        self.total_items_len = self.level_select_l[-1].rect.bottom - self.level_select_l[0].rect.top - self.screen.get_height() + 100
+        self.lock_g.add(self.lock_l)
+        self.level_select_g.add(self.level_select_l)
+
+    def _slider_init(self):
+        self.slider = ScrollBar(self.screen, [0, 100], [10, self.screen.get_height()], [10, 50], 'black', 'dark gray')
+        self.slider_g = pygame.sprite.GroupSingle(self.slider)
+        self.index = 1 if self.slider.orientation == 'vertical' else 0
+        self.slider.step_size = (self.slider.end_pos[self.index] - self.slider.start_pos[self.index] - self.slider.dim[self.index]) / self.total_items_len
+
+    def _misc_init(self):
+        self.misc_g = pygame.sprite.Group()
+        self.misc_l = [
+            Button(self.screen, [self.screen.get_width() / 2, 50], None, 'Choose a Level!', 50),
+            Button(self.screen, [self.screen.get_width(), 10], None, self.star_count, 50, alignment_pos='topright')
+        ]
+        self.misc_g.add(self.misc_l)
+
+    def _stars_init(self):
+        self.stars_g = pygame.sprite.Group()
+        self.stars_l = []
+        self.star_count = 0
+        for _i in range(self.level_amount):
+            star_count = self._calc_stars(_i)
+            self.star_count += star_count
+            self.stars_l.append(
+                Button(self.screen, [self.screen.get_width(), _i * 60 + 95 - self.dy], None, star_count, 30, path='Assets/star.png',
+                    dim=(59, 59), alignment_pos='topright')
+            )
+        self.stars_g.add(self.stars_l)
+
+    def _high_scores_init(self):
+        self.high_score_g = pygame.sprite.Group()
+        self.high_score_l = []
+        for _i in range(self.level_amount):
+            score = self._get_score(_i)
+            self.high_score_l.append(
+                Button(self.screen, [self.screen.get_width() - 100, _i * 60 + 95 - self.dy], _i, round(float(score), 2), 30, alignment_pos='topright')
+            )
+        self.high_score_g.add(self.high_score_l)
+    
+    def _left_click(self):
+        clicked_pos = pygame.mouse.get_pos()
+        for i, sprite in enumerate(self.level_select_g.sprites()):
+            if sprite.rect.collidepoint(clicked_pos) and isinstance(self.level_select_l[i].mode_c, int):
+                self.song_id = str(self.level_select_l[i].mode_c)
+                return ScreenID.levelOptions
+        if self.slider.back_rect.collidepoint(clicked_pos):
+            self.mouse_down = True
+            self.dy = self.slider.click_drag(clicked_pos)
+
+    def _video_resize(self):
+        self.slider.end_pos = [10, self.screen.get_height()]
+        self.slider.update(screen_change=True)
+        self.total_items_len = self.level_select_l[-1].rect.bottom - self.level_select_l[0].rect.top - self.screen.get_height() + 100
+        self.index = 1 if self.slider.orientation == 'vertical' else 0
+        self.slider.step_size = (self.slider.end_pos[self.index] - self.slider.start_pos[self.index] - self.slider.dim[self.index]) / self.total_items_len
+        self.slider.step_size = self.slider.step_size
+        self.misc_l[0].rect.center = [self.screen.get_width() / 2, 50]
+
+    def _draw(self):
+        self.screen.fill('light gray')
+        height = self.screen.get_height()
+        to_draw = pygame.sprite.Group()
+        for sprite in self.level_select_g.sprites() + self.high_score_g.sprites() + self.stars_g.sprites() + self.lock_g.sprites():
+            if height > sprite.rect.top and sprite.rect.bottom > 95:
+                to_draw.add(sprite)
+        to_draw.draw(self.screen)
+        to_draw.update()
+        pygame.draw.rect(self.screen, 'light gray', (0, 0, self.screen.get_width(), 95))
+        self.misc_g.draw(self.screen)
+        self.misc_g.update()
+        if self.total_items_len > 0:
+            self.slider_g.update()
+            self.slider_g.draw(self.screen)
+        pygame.display.update()
+        self.clock.tick(FRAME_RATE)
+
+    def _slider_update(self):
+        if self.mouse_down:
+            self.dy = self.slider.click_drag(pygame.mouse.get_pos())
+        if self.total_items_len > 0:
+            self.slider_velocity *= .9
+            if abs(self.slider_velocity) < 1:
+                self.slider_velocity = 0
+            self.dy += self.slider_velocity
+            if self.dy < 0:
+                self.dy = 0
+                self.slider_velocity = 0
+            elif self.dy > self.total_items_len:
+                self.dy = self.total_items_len
+                self.slider_velocity = 0
+            self.slider.rect.topleft = self.slider.rect.topleft[0], self.dy * self.slider.step_size + self.slider.start_pos[1]
+        else:
+            self.dy = 0
+        for i, sprite in enumerate(self.level_select_l):
+            sprite.set_pos((84, i * 60 + 95 - self.dy))
+        for i, sprite in enumerate(self.high_score_l):
+            sprite.set_pos((self.screen.get_width() - 100, i * 60 + 95 - self.dy))
+        for i, sprite in enumerate(self.stars_l):
+            sprite.set_pos((self.screen.get_width() - 40, i * 60 + 93 - self.dy))
+        for i, sprite in enumerate(self.lock_l):
+            sprite.set_pos((15, INVREQUIREMENTS[int(sprite.text)] * 60 + 95 - self.dy))
+
+    def _get_score(self, _i):
         if str(_i) not in self.high_scores:
             score = 0
         else:
@@ -160,8 +184,8 @@ class Menu(Screen):
             score += self.high_scores[str(_i) + 'e']
         return score
 
-    def calc_stars(self, _i):
-        high_score = self.get_score(_i)
+    def _calc_stars(self, _i):
+        high_score = self._get_score(_i)
         for score, stars in SCORE2STARS.items():
             if high_score <= score:
                 return stars

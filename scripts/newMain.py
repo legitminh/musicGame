@@ -33,7 +33,7 @@ screen.fill('dark gray')
 #Game-wide critical variables
 clock = pygame.time.Clock()
 volume = .2
-high_scores = {}
+high_scores: dict[str, float] = {}
 
 
 def main():

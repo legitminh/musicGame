@@ -8,104 +8,42 @@ from constants import *
 
 
 class Level(Screen):
-    def loop(self) -> ScreenID:
-        extreme = False
+    slowdown: float
+    volume: float
+    extreme = False
+    note_change = {
+        'q': '1qaz',
+        'w': '2wsx',
+        'e': '3edc',
+        'r': '4rfv',
+        't': '5tgb',
+        'y': '8uhy',
+        'u': '9ijn',
+        'i': '0okm',
+        'o': '-pl,',
+        'p': '=[;.',
+    }
+    colors = [(255, 0, 0, 100), (255, 165, 0, 100), (255, 255, 0, 100), (0, 255, 0, 100), (0, 255, 255, 100),
+            (0, 0, 255, 100), (255, 0, 255, 100)]
+    dt = 0
+
+    correct_hits = 0
+    total_hits = 0
+    last_time = pygame.time.get_ticks()
+    first = True
+
+    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs):
+        super().__init__(screen, clock, **kwargs)
+        
         if isinstance(self.song_id, str) and 'e' in self.song_id:
             self.song_id = int(self.song_id.replace('e', ''))
-            extreme = True
-        if extreme:
-            note_change = {
-            'q': '1qaz',
-            'w': '2wsx',
-            'e': '3edc',
-            'r': '4rfv',
-            't': '5tgb',
-            'y': '8uhy',
-            'u': '9ijn',
-            'i': '0okm',
-            'o': '-pl,',
-            'p': '=[;.',
-            }
-            note_numbers = {}  # option and their colum number(x postion)
-            note_rep = {}  # rank placement up down of key board
-            holds: dict[str, None | float] = {}
-            for a, (_, options) in enumerate(note_change.items()):
-                for rank, option in enumerate(options):
-                    holds[option] = None
-                    note_numbers[option] = a
-                    note_rep[option] = rank
-        else:
-            note_numbers = {'q': 0, 'w': 1, 'e': 2, 'r': 3, 't': 4, 'y': 5, 'u': 6, 'i': 7, 'o': 8, 'p': 9}
-            holds: dict[str, None | float] = {
-                'q': None, 'w': None, 'e': None, 'r': None, 't': None, 'y': None, 'u': None, 'i': None, 'o': None, 'p': None
-                }
-        
-        colors = [(255, 0, 0, 100), (255, 165, 0, 100), (255, 255, 0, 100), (0, 255, 0, 100), (0, 255, 255, 100),
-                (0, 0, 255, 100), (255, 0, 255, 100)]
-
-        dt = 0
-        notes = note_extractor(self.song_id, self.slowdown)
-        if extreme:  # randomize the notes
-            for i, note in enumerate(notes):
-                note[0] = choice(note_change[note[0]])
-        correct_hits = 0
-        total_hits = 0
-        last_time = pygame.time.get_ticks()
-        first = True
-
+            self.extreme = True
+            
+        self._note_init()
         pygame.mixer.music.set_volume(self.volume)
-       
-        def all_note_cycle():  # note GFX
-            nonlocal notes
-            current_color = 0
-            notes_copy = notes[:]
-            notes_copy.reverse()
-            for note in notes_copy:  # check list representing note
-                if note[2] <= 0 <= note[2] + note[1]:
-                    color = (0, 255, 0, 255)  # green-clickable
-                else:
-                    color = colors[current_color]
-                    current_color += 1
-                    if current_color == len(colors):
-                        current_color = 0
-                if holds[note[0]] == 0 and note[2] <= 0 <= note[2] + note[1] and note[3]:
-                    color = (255, 0, 0, 255)
-                draw_rect_alpha(self.screen, color, (
-                    note_numbers[note[0]] * self.screen.get_width() / 10, self.screen.get_height() * .8 - note[2] - note[1],
-                    self.screen.get_width() / 10, note[1]))
-                note[2] -= dt  # decrease time>>note fall down.
-
-        
-        def draw_key_rank():
-            width = self.screen.get_width()
-            height = self.screen.get_height()
-            for note in notes:
-                if note_rep[note[0]] != 0:
-                    if height * .8 - note[2] - note[1]/2 - 8 < 0:
-                        break
-                    self.screen.blit(pygame.image.load(f"Assets/Extreme/{note_rep[note[0]]}.png"),
-                    (note_numbers[note[0]] * width / 10+ width / 20-8,
-                    height * .8 - note[2] - note[1]/2 - 8))
-        
-        def draw_key_names():
-            width = self.screen.get_width()
-            height = self.screen.get_height()
-            lowest: list[int] = []
-            for note in notes:
-                if note_numbers[note[0]] in lowest:
-                    continue
-                if len(lowest) == 10:
-                    return
-                lowest.append(note_numbers[note[0]])
-                make_text(self.screen, note_numbers[note[0]] * width / 10 + width / 20, height * .9, note[0])
-
+    
+    def loop(self) -> ScreenID:
         while True:
-            line_level = int(self.screen.get_height() * .8)
-            self.screen.fill('gray')
-            pygame.draw.line(self.screen, 'black', (0, line_level), (self.screen.get_width(), line_level))
-            dt = (pygame.time.get_ticks() - last_time) / 1000 * 60
-            if first: dt = 0
-            last_time = pygame.time.get_ticks()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     raise ExitException()
@@ -113,73 +51,159 @@ class Level(Screen):
                     if event.key == pygame.K_ESCAPE: #ESC to exit song
                         pygame.mixer.music.stop()
                         return ScreenID.levelOptions
-                    if first:
-                        if self.slowdown < .99:
-                            pygame.mixer.music.load(SONGS[self.song_id].replace("Musics/","ProcessedMusics/").replace(".wav",f'{int(self.slowdown * 100)}.wav'))
-                        else:
-                            pygame.mixer.music.load(SONGS[self.song_id])
-                        pygame.mixer.music.play()
-                        last_time = pygame.time.get_ticks()
-                        first = False
-                    clicked = False
-                    for i in notes:  # i = note
-                        if i[2] <= 0 <= i[2] + i[1]:  # if key in range
-                            if event.key == ord(i[0]):  # the target note is held
-                                clicked = True
-                                if i[3]:
-                                    holds[i[0]] = i[1] * .5
-                                else:
-                                    notes.remove(i)
-                                    total_hits += 1
-                                    correct_hits += 1
-                        else:  # it is a note that is not the lowest so don't check the rest
-                            break 
-                    if not clicked and event.key in range(97, 123):
-                        total_hits += 1
+                    self._key_down(event)
                 elif event.type == pygame.KEYUP:
-                    for i in notes:
-                        if i[2] <= 0 <= i[2] + i[1] and i[3]:  # if in colliding range
-                            try:  #
-                                if event.key in range(97, 122) and holds[i[0]] <= 0 and i[3]:
-                                    total_hits += 1
-                                    correct_hits += 1
-                                    holds[i[0]] = None
-                                    notes.remove(i)
-                            except Exception as e:
-                                pass
-            if len(notes) == 0:  # check if finished song
-                pygame.mixer.music.stop()
-                try:
-                    self.score = correct_hits / total_hits * 100
-                    self.song_id = (str(self.song_id) + 'e') if extreme else self.song_id
-                    return ScreenID.outro
-                except ZeroDivisionError:
-                    return ScreenID.levelOptions
-            for i, note in enumerate(notes[:]):
-                if note[2] + note[1] >= 0: # don't remove
-                    break
-                total_hits += 1
-                holds[note[0]] = None
-                notes.pop(0)
-            for a in holds.keys():
-                if type(holds[a]) is float:  # is being held
-                    if holds[a] > 0:
-                        holds[a] -= dt
-                    else:
-                        holds[a] = 0
-            all_note_cycle()
-            if extreme:
-                draw_key_names()
-                draw_key_rank()
+                    self._key_up(event)
+            self.dt = (pygame.time.get_ticks() - self.last_time) / 1000 * 60
+            if self.first: self.dt = 0
+            self.last_time = pygame.time.get_ticks()
+            
+            ret_val = self._update_notes()
+            if ret_val is not None:
+                return ret_val
+            
+            self._draw()
+        
+    def _note_init(self):
+        if self.extreme:
+            self.note_numbers = {}
+            self.note_rep = {}
+            self.holds: dict[str, None | float] = {}
+            for i, options in enumerate(self.note_change.values()):
+                for rank, option in enumerate(options):
+                    self.holds[option] = None
+                    self.note_numbers[option] = i
+                    self.note_rep[option] = rank
+        else:
+            self.note_numbers = {'q': 0, 'w': 1, 'e': 2, 'r': 3, 't': 4, 'y': 5, 'u': 6, 'i': 7, 'o': 8, 'p': 9}
+            self.holds: dict[str, None | float] = {
+                'q': None, 'w': None, 'e': None, 'r': None, 't': None, 'y': None, 'u': None, 'i': None, 'o': None, 'p': None
+                }
+        
+        self.notes = note_extractor(self.song_id, self.slowdown)
+        if self.extreme:
+            for i, note in enumerate(self.notes):
+                note[0] = choice(self.note_change[note[0]])
+    
+    def _all_note_cycle(self):  # note GFX
+        current_color = 0
+        notes_copy = self.notes[:]
+        notes_copy.reverse()
+        for note in notes_copy:  # check list representing note
+            if note[2] <= 0 <= note[2] + note[1]:
+                color = (0, 255, 0, 255)  # green-clickable
             else:
-                for i in ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p']:
-                    make_text(self.screen, (note_numbers[i] + .5) * self.screen.get_width() / 10, self.screen.get_height() * .9, i.upper())
+                color = self.colors[current_color]
+                current_color += 1
+                if current_color == len(self.colors):
+                    current_color = 0
+            if self.holds[note[0]] == 0 and note[2] <= 0 <= note[2] + note[1] and note[3]:
+                color = (255, 0, 0, 255)
+            draw_rect_alpha(self.screen, color, (
+                self.note_numbers[note[0]] * self.screen.get_width() / 10, self.screen.get_height() * .8 - note[2] - note[1],
+                self.screen.get_width() / 10, note[1]))
+            note[2] -= self.dt  # decrease time>>note fall down.
+    
+    def _draw_key_rank(self):
+        width = self.screen.get_width()
+        height = self.screen.get_height()
+        for note in self.notes:
+            if self.note_rep[note[0]] != 0:
+                if height * .8 - note[2] - note[1]/2 - 8 < 0:
+                    break
+                self.screen.blit(pygame.image.load(f"Assets/Extreme/{self.note_rep[note[0]]}.png"),
+                (self.note_numbers[note[0]] * width / 10+ width / 20-8,
+                height * .8 - note[2] - note[1]/2 - 8))
+    
+    def _draw_key_names(self):
+        width = self.screen.get_width()
+        height = self.screen.get_height()
+        lowest: list[int] = []
+        for note in self.notes:
+            if self.note_numbers[note[0]] in lowest:
+                continue
+            if len(lowest) == 10:
+                return
+            lowest.append(self.note_numbers[note[0]])
+            make_text(self.screen, self.note_numbers[note[0]] * width / 10 + width / 20, height * .9, note[0])
+    
+    def _update_notes(self):
+        if len(self.notes) == 0:  # check if finished song
+            pygame.mixer.music.stop()
             try:
-                make_text(self.screen, self.screen.get_width() / 2, 20, int(correct_hits / total_hits * 100))
+                self.score = self.correct_hits / self.total_hits * 100
+                self.song_id = (str(self.song_id) + 'e') if self.extreme else self.song_id
+                return ScreenID.outro
             except ZeroDivisionError:
-                make_text(self.screen, self.screen.get_width() / 2, 20, 0)
-            pygame.display.update()
-            self.clock.tick(FRAME_RATE)
+                return ScreenID.levelOptions
+        for note in self.notes:
+            if note[2] + note[1] >= 0: # don't remove
+                break
+            self.total_hits += 1
+            self.holds[note[0]] = None
+            self.notes.pop(0)
+        for a in self.holds.keys():
+            if type(self.holds[a]) is float:  # is being held
+                if self.holds[a] > 0:
+                    self.holds[a] -= self.dt
+                else:
+                    self.holds[a] = 0
+
+    def _draw(self):
+        line_level = int(self.screen.get_height() * .8)
+        self.screen.fill('gray')
+        pygame.draw.line(self.screen, 'black', (0, line_level), (self.screen.get_width(), line_level))
+            
+        self._all_note_cycle()
+        if self.extreme:
+            self._draw_key_names()
+            self._draw_key_rank()
+        else:
+            for i in ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p']:
+                make_text(self.screen, (self.note_numbers[i] + .5) * self.screen.get_width() / 10, self.screen.get_height() * .9, i.upper())
+        try:
+            make_text(self.screen, self.screen.get_width() / 2, 20, int(self.correct_hits / self.total_hits * 100))
+        except ZeroDivisionError:
+            make_text(self.screen, self.screen.get_width() / 2, 20, 0)
+        pygame.display.update()
+        self.clock.tick(FRAME_RATE)
+
+    def _key_up(self, event):
+        for i in self.notes:
+            if i[2] <= 0 <= i[2] + i[1] and i[3]:  # if in colliding range
+                try:  #
+                    if event.key in range(97, 122) and self.holds[i[0]] <= 0 and i[3]:
+                        self.total_hits += 1
+                        self.correct_hits += 1
+                        self.holds[i[0]] = None
+                        self.notes.remove(i)
+                except Exception as e:
+                    pass
+
+    def _key_down(self, event):
+        if self.first:
+            if self.slowdown < .99:
+                pygame.mixer.music.load(SONGS[self.song_id].replace("Musics/","ProcessedMusics/").replace(".wav",f'{int(self.slowdown * 100)}.wav'))
+            else:
+                pygame.mixer.music.load(SONGS[self.song_id])
+            pygame.mixer.music.play()
+            self.last_time = pygame.time.get_ticks()
+            self.first = False
+        clicked = False
+        for i in self.notes:  # i = note
+            if i[2] <= 0 <= i[2] + i[1]:  # if key in range
+                if event.key == ord(i[0]):  # the target note is held
+                    clicked = True
+                    if i[3]:
+                        self.holds[i[0]] = i[1] * .5
+                    else:
+                        self.notes.remove(i)
+                        self.total_hits += 1
+                        self.correct_hits += 1
+            else:  # it is a note that is not the lowest so don't check the rest
+                break 
+        if not clicked and event.key in range(97, 123):
+            self.total_hits += 1
 
     def extreme_level(self) -> tuple[str, float] | str:
         """

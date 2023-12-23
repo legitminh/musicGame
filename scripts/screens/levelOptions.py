@@ -5,14 +5,36 @@ from .screen import Screen
 from constants import *
 
 class LevelOptions(Screen):
-    def loop(self):
-        """
-        :param: screen, clock
-        **kwargs: highscore, song_id
-        """
+    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs):
+        super().__init__(screen, clock, **kwargs)
         self.song_id = str(self.song_id)
-        # modes
-        modes_l = [
+        self.slowdown = 1
+        self._mode_buttons_init()
+        self._lock_init()
+
+    def loop(self):
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    raise ExitException()
+                elif event.type == pygame.VIDEORESIZE:
+                    self._video_resize()
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    return ScreenID.menu
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    ret_val = self._button_clicked()
+                    if ret_val is not None:
+                        return ret_val
+            self._draw()
+
+    def _lock_init(self):
+        self.lock_g = pygame.sprite.GroupSingle()
+        if self.song_id not in self.high_scores or self.high_scores[self.song_id] != 100:
+            self.lock_g.add(Button(self.screen, self.modes_l[5].rect.center, '', 0, 0, path='Assets/lock.png',
+                            dim=(50, 50), alignment_pos='center'))
+
+    def _mode_buttons_init(self):
+        self.modes_l = [
             Button(self.screen, [self.screen.get_width() / 2, self.screen.get_height() / 2 - 130], None, 'Speed', 30),
             Button(self.screen, [self.screen.get_width() / 2 - 105, self.screen.get_height() / 2 - 65], '.75', '75%', 30),
             Button(self.screen, [self.screen.get_width() / 2, self.screen.get_height() / 2 - 65], '.50', '50%', 30),
@@ -20,54 +42,50 @@ class LevelOptions(Screen):
             Button(self.screen, [self.screen.get_width() / 2, self.screen.get_height() / 2], int(self.song_id), 'Normal', 30),
             Button(self.screen, [self.screen.get_width() / 2, self.screen.get_height() / 2 + 65], self.song_id + 'e', 'Extreme', 30)
         ]
-        modes_g = pygame.sprite.Group()
-        modes_g.add(modes_l)
-        # lock
-        lock_g = pygame.sprite.GroupSingle()
+        self.modes_g = pygame.sprite.Group()
+        self.modes_g.add(self.modes_l)
+    
+    def _draw(self):
+        self.screen.fill('light gray')
+        self.modes_g.draw(self.screen)
+        self.modes_g.update()
         if self.song_id not in self.high_scores or self.high_scores[self.song_id] != 100:
-            lock_g.add(Button(self.screen, modes_l[5].rect.center, '', 0, 0, path='Assets/lock.png',
-                            dim=(50, 50), alignment_pos='center'))
-        slowdown = 1
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
-                elif event.type == pygame.VIDEORESIZE:
-                    for i, button in enumerate(modes_l):
+            self.lock_g.draw(self.screen)
+            self.lock_g.update()
+        pygame.display.update()
+        self.clock.tick(FRAME_RATE)
+
+    def _button_clicked(self):
+        clicked_pos = pygame.mouse.get_pos()
+        for i, sprite in enumerate(self.modes_g.sprites()):
+            if not sprite.rect.collidepoint(clicked_pos):
+                continue
+            if self.modes_l[i].mode_c is None:
+                continue
+            if '.' in str(self.modes_l[i].mode_c):
+                self._change_slowdown(i)
+                break
+            if self.modes_l[i].mode_c in SONGS:
+                self.slowdown = self.slowdown
+                self.song_id = self.modes_l[i].mode_c
+                return ScreenID.level
+            if self.song_id in self.high_scores:
+                self.slowdown = self.slowdown
+                self.song_id = self.modes_l[i].mode_c
+                return ScreenID.level
+            break
+
+    def _change_slowdown(self, sprite_i):
+        if float(self.modes_l[sprite_i].mode_c) == self.slowdown:
+            self.slowdown = 1
+            self.modes_l[sprite_i].color_changer((150, 150, 150, 255))
+        else:
+            for sprite in self.modes_l[1:4]:
+                sprite.color_changer((150, 150, 150, 255))
+            self.slowdown = float(self.modes_l[sprite_i].mode_c)
+            self.modes_l[sprite_i].color_changer((0, 150, 0, 255))
+
+    def _video_resize(self):
+        for i, button in enumerate(self.modes_l):
                         # button.rect.center = self.screen.get_width() / 2, self.screen.get_height() / 2 + 65
-                        self.screen.get_width() / 2, self.screen.get_height() / 2 + 50 * (i - 1) - (0 if i else 65)
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        return ScreenID.menu
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1:
-                        clicked_pos = pygame.mouse.get_pos()
-                        for i in range(len(modes_g.sprites())):
-                            if modes_g.sprites()[i].rect.collidepoint(clicked_pos):
-                                if '.' in str(modes_l[i].mode_c):
-                                    if float(modes_l[i].mode_c) == slowdown:
-                                        slowdown = 1
-                                        modes_l[i].color_changer((150, 150, 150, 255))
-                                    else:
-                                        for sprite in modes_l[1:4]:
-                                            sprite.color_changer((150, 150, 150, 255))
-                                        slowdown = float(modes_l[i].mode_c)
-                                        modes_l[i].color_changer((0, 150, 0, 255))
-                                    break
-                                if 'e' in str(modes_l[i].mode_c) and self.high_scores[self.song_id] == 100:
-                                    self.slowdown = slowdown
-                                    self.song_id = modes_l[i].mode_c
-                                    return ScreenID.level
-                                elif 'e' not in str(modes_l[i].mode_c) and (modes_l[i].mode_c or modes_l[i].mode_c == 0):
-                                    self.slowdown = slowdown
-                                    self.song_id = modes_l[i].mode_c
-                                    return ScreenID.level
-            self.screen.fill('light gray')
-            modes_g.draw(self.screen)
-            modes_g.update()
-            if self.song_id not in self.high_scores or self.high_scores[self.song_id] != 100:
-                lock_g.draw(self.screen)
-                lock_g.update()
-            pygame.display.update()
-            self.clock.tick(FRAME_RATE)
+            self.screen.get_width() / 2, self.screen.get_height() / 2 + 50 * (i - 1) - (0 if i else 65)

@@ -6,34 +6,39 @@ from constants import *
 
 
 class Intro(Screen):
-    def loop(self):
-        """
-        :params: screen, clock
-        **kwargs: None
-        """
-        intro_g = pygame.sprite.Group()
-        intro_l = [
+    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs):
+        super().__init__(screen, clock, **kwargs)
+        self.intro_g = pygame.sprite.Group()
+        self.intro_l = [
             Button(self.screen, [self.screen.get_width() // 2, self.screen.get_height() // 2 - 50], None, 'Typing Piano', 50),
             Button(self.screen, [self.screen.get_width() // 2, self.screen.get_height() // 2 + 50], ScreenID.menu, 'Play', 30),
             Button(self.screen, [self.screen.get_width() // 2, self.screen.get_height() // 2 + 100], ScreenID.option, 'Options', 30)
         ]
-        intro_g.add(intro_l)
+        self.intro_g.add(self.intro_l)
+
+    def loop(self):
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     raise ExitException()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        raise ExitException()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1:
-                        for i in range(len(intro_g.sprites())):
-                            s = intro_g.sprites()[i]
-                            pos = pygame.mouse.get_pos()
-                            if s.rect.collidepoint(pos[0], pos[1]) and intro_l[i].mode_c is not None:
-                                return intro_l[i].mode_c
-            self.screen.fill('light gray')
-            self.clock.tick(FRAME_RATE)
-            intro_g.draw(self.screen)
-            intro_g.update()
-            pygame.display.update()
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    raise ExitException()
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    ret_val = self._button_clicked()
+                    if ret_val is not None:
+                        return ret_val
+            self._draw()
+
+    def _draw(self):
+        self.screen.fill('light gray')
+        self.clock.tick(FRAME_RATE)
+        self.intro_g.draw(self.screen)
+        self.intro_g.update()
+        pygame.display.update()
+
+    def _button_clicked(self):
+        x, y = pygame.mouse.get_pos()
+        for i, sprite in enumerate(self.intro_g.sprites()):
+            if sprite.rect.collidepoint(x, y):
+                return self.intro_l[i].mode_c
+        return None
