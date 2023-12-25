@@ -30,9 +30,9 @@ class Outro(Screen):
     def _buttons_init(self):
         self.outro_g = pygame.sprite.Group()
         if isinstance(self.song_id, str):
-            directory = SONGS[int(self.song_id.replace('e', '').replace('p', ''))]
+            directory = SONG_PATHS[int(self.song_id.replace('e', '').replace('p', ''))]
         else:
-            directory = SONGS[self.song_id]
+            directory = SONG_PATHS[self.song_id]
         
         self.outro_l = [Button(self.screen, [self.screen.get_width() / 2, self.screen.get_height() // 2 + 50], self.song_id, 'Play again', 30),
                 Button(self.screen, [self.screen.get_width() / 2, self.screen.get_height() // 2 - 50], '',

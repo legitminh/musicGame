@@ -1,21 +1,20 @@
 # Configuration
-PATH = '/'
 FPS = 30
 FFT_WINDOW_SECONDS = 0.25 # how many seconds of audio make up an FFT window
 
-# Note range to display
+# Note frequency range to display
 FREQ_MIN = 10
 FREQ_MAX = 1000
 
-# Notes to display
+# Number of notes to display
 TOP_NOTES = 1
 
 # Names of the notes
 NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
 # Output size. Generally use SCALE for higher res, unless you need a non-standard aspect ratio.
-RESOLUTION = (1920, 1080)
-SCALE = 2 # 0.5=QHD(960x540), 1=HD(1920x1080), 2=4K(3840x2160)
+# RESOLUTION = (1920, 1080)
+# SCALE = 2 # 0.5=QHD(960x540), 1=HD(1920x1080), 2=4K(3840x2160)
 
 #File1
 import matplotlib.pyplot as plt
@@ -32,11 +31,10 @@ import numpy as np #moved from file3
 
 # Or download my sample audio
 #!wget https://github.com/jeffheaton/present/raw/master/youtube/video/sample_audio/piano_c_major_scale.wav
-AUDIO_FILE = "piano_c_major_scale.wav"
+AUDIO_FILE = "scripts/utility/youtube_video_sample_audio_piano_c_major_scale.wav"
 
 # fs, data = wavfile.read(os.path.join(PATH,AUDIO_FILE)) # load the data
-file_name = "piano_c_major_scale.wav"
-fs,data = read(file_name)
+fs,data = read(AUDIO_FILE)
 print('[=] Sampling rate {} Hz'.format(fs))
 audio = data[:,0]
 #debug render raw data
@@ -163,7 +161,7 @@ for frame_number in range(FRAME_COUNT):
 
 print(f"Max amplitude: {mx}")
 
-allNotes = []
+allNotes = [] #list of all notes
 # Pass 2, produce the animation
 for frame_number in tqdm.tqdm(range(FRAME_COUNT)): #tqdm only decorator for PROGRESSBAR, for each frame
   sample = extract_sample(audio, frame_number)
@@ -177,7 +175,7 @@ for frame_number in tqdm.tqdm(range(FRAME_COUNT)): #tqdm only decorator for PROG
   if s:
     allNotes.append(s[0][0]) #get highest note's frequency
 
-  fig = plot_fft(fft.real,xf,fs,s,RESOLUTION)
+  # fig = plot_fft(fft.real,xf,fs,s,RESOLUTION)
 #   fig.write_image(f"/content/frame{frame_number}.png",scale=2)
 print(allNotes)
 plt.plot(range(len(allNotes)),allNotes)

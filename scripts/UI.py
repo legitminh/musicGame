@@ -1,5 +1,6 @@
 import pygame
 from enum import Enum
+from constants import *
 from typing import Any
 
 
@@ -32,13 +33,13 @@ class Button(pygame.sprite.Sprite):
         self.surface, self.pos, self.text, self.color, self.tcolor, self.mode_c, self.ts, self.alignment = \
             surface, pos, text, color, tcolor, mode_c, text_size, alignment_pos
         if (text or text == 0) and path:
-            self.rect = pygame.font.Font("Fonts/Roboto-Light.ttf", self.ts).render(
+            self.rect = pygame.font.Font(FONT_PATH, self.ts).render(
                 str(self.text), True, self.tcolor).get_rect()
             self.image = pygame.transform.scale(pygame.image.load(path).convert_alpha(),
                                                 dim)  # resizes the image to 'dim'
             self.rect = self.image.get_rect()
         elif text or text == 0:  # needs to have 'text' and 'text_size'
-            self.rect = pygame.font.Font("Fonts/Roboto-Light.ttf", self.ts).render(
+            self.rect = pygame.font.Font(FONT_PATH, self.ts).render(
                 str(text), True, self.tcolor).get_rect()
             dim = self.rect.bottomright[0] - self.rect.topleft[0] + 20, self.rect.bottomright[1] - self.rect.topleft[
                 1] + 20
@@ -52,7 +53,7 @@ class Button(pygame.sprite.Sprite):
         self.set_pos(self.pos)
 
     def update(self) -> None:
-        text = pygame.font.Font("Fonts/Roboto-Light.ttf", self.ts).render(str(self.text), True, self.tcolor)
+        text = pygame.font.Font(FONT_PATH, self.ts).render(str(self.text), True, self.tcolor)
         self.surface.blit(text, text.get_rect(center=self.rect.center))
 
     def color_changer(self, color) -> None:
@@ -229,6 +230,6 @@ def draw_rect_alpha(surface, color, rect):
 
 def make_text(screen, x, y, what, t_size=29, color='blue'):
     if y > -1:
-        text = pygame.font.Font('Fonts/Roboto-Light.ttf', t_size).render(str(what), True, color)
+        text = pygame.font.Font('Assets/Fonts/Roboto-Light.ttf', t_size).render(str(what), True, color)
         screen.blit(text, text.get_rect(center=(x, y)))
         return True

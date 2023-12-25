@@ -1,4 +1,17 @@
 #transform machine notes into a list of note commands
+import csv
+from constants import SONG_PATHS
+
+def midi_note_extractor(which_level: int, slowdown: float):
+    notes = []
+    multi = 1 / slowdown
+    with open(SONG_PATHS[which_level].replace("Musics", "Assets/MachineNotes").replace(".wav", ".csv")) as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        velocity = float(csvfile.readline().strip())
+        for note, note_len, dist_to_bottom, hold in reader:
+            notes.append([note, float(note_len) * multi, float(dist_to_bottom) * multi, bool(int(hold))])
+    return velocity, notes
+
 
 def note_extractor(which_level, slow_down) -> list[list[str, float, float, bool]]:
     """

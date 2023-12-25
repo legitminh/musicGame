@@ -32,7 +32,7 @@ class LevelOptions(Screen):
     def _lock_init(self):
         self.lock_g = pygame.sprite.GroupSingle()
         if self.song_id not in self.high_scores or self.high_scores[self.song_id] != 100:
-            self.lock_g.add(Button(self.screen, self.modes_l[5].rect.center, '', 0, 0, path='Assets/lock.png',
+            self.lock_g.add(Button(self.screen, self.modes_l[5].rect.center, '', 0, 0, path='Assets/Images/lock.png',
                             dim=(50, 50), alignment_pos='center'))
 
     def _mode_buttons_init(self):
@@ -67,7 +67,7 @@ class LevelOptions(Screen):
             if '.' in str(self.modes_l[i].mode_c):
                 self._change_slowdown(i)
                 break
-            if self.modes_l[i].mode_c in SONGS:
+            if self.modes_l[i].mode_c in SONG_PATHS:
                 return Redirect(ScreenID.level, slowdown=self.slowdown, song_id=self.song_id)
             if self.song_id in self.high_scores:
                 return Redirect(ScreenID.level, slowdown=self.slowdown, song_id=self.song_id + 'e')

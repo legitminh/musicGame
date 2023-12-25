@@ -25,7 +25,7 @@ screen = pygame.display.set_mode([799, 500], pygame.RESIZABLE)
 
 pygame.display.set_caption("Typing piano")
 
-img = pygame.image.load('Assets/Checkered pattern.png')
+img = pygame.image.load('Assets/Images/Checkered pattern.png')
 pygame.display.set_icon(img)
 
 screen.fill('dark gray')

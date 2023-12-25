@@ -58,15 +58,15 @@ class Menu(Screen):
         for _i in range(self.level_amount):
             try:  # if song is written
                 locked = REQUIREMENTS[_i] > self.star_count
-                directory = SONGS[_i]
+                directory = SONG_PATHS[_i]
                 if locked:
                     self.lock_l.append(Button(self.screen, [10, _i * 60 + 95 - self.dy], None, REQUIREMENTS[_i], 30, alignment_pos='topleft',
-                                        path='Assets/lock.png', dim=(59, 59)))
+                                        path='Assets/Images/lock.png', dim=(59, 59)))
             except KeyError:  # if song doesn't exist
                 locked = True
                 directory = "/To be discovered."
                 self.lock_l.append(Button(self.screen, [10, _i * 60 + 95 - self.dy], None, REQUIREMENTS[_i], 30, alignment_pos='topleft',
-                                        path='Assets/lock.png', dim=(59, 59)))
+                                        path='Assets/Images/lock.png', dim=(59, 59)))
             name = directory[directory.find("/") + 1:directory.find(".")]
             self.level_select_l.append(
                 Button(self.screen, [100, _i * 60 + 95 - self.dy], None if locked else _i, "To be discovered" if locked else name, 30, alignment_pos='topleft'))
@@ -96,7 +96,7 @@ class Menu(Screen):
             star_count = self._calc_stars(_i)
             self.star_count += star_count
             self.stars_l.append(
-                Button(self.screen, [self.screen.get_width(), _i * 60 + 95 - self.dy], None, star_count, 30, path='Assets/star.png',
+                Button(self.screen, [self.screen.get_width(), _i * 60 + 95 - self.dy], None, star_count, 30, path='Assets/Images/star.png',
                     dim=(59, 59), alignment_pos='topright')
             )
         self.stars_g.add(self.stars_l)
