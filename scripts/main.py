@@ -21,7 +21,7 @@ from interfaces import *
 
 
 pygame.init()
-screen = pygame.display.set_mode([799, 500], pygame.RESIZABLE)
+screen = pygame.display.set_mode([800, 500], pygame.RESIZABLE)
 
 pygame.display.set_caption("Typing piano")
 

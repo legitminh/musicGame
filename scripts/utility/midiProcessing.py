@@ -1,3 +1,24 @@
+"""
+`1234567890-=
+qwertyuiop[]\
+asdfghjkl;'
+zxcvbnm,./
+K_F[1-15]
+K_SPACE
+K_BACKSPACE
+K_CAPSLOCK
+K_TAB
+K_LSHIFT
+K_RSHIFT
+K_LCTRL
+K_RCTRL
+K_UP
+K_DOWN
+K_LEFT
+K_RIGHT
+K_LALT
+K_RALT
+"""
 import mido
 import csv
 from os import listdir
@@ -27,9 +48,10 @@ CONV_NOTE_NUM: dict[int, str] = {
     11: 'B',
 }
 
+MAX_KEYS_IN_NORMAL: int = 48
 INPUT_DIR = 'Assets/Midi/'
 OUTPUT_DIR = 'Assets/MachineNotes/'
-BUCKET_NUM = 10
+# BUCKET_NUM = 10
 
 instruction = list[int, float, float, int]  # note name, note duration, note distance from playing, is held
 
@@ -38,22 +60,56 @@ def process_file(file_name: str) -> None:
     """
     Process a .mid or .midi file to a set of note instructions listed in a .csv with the file's name
     """
+    print(f"Processing {file_name}>>>")
     mid = mido.MidiFile(INPUT_DIR + file_name)
 
     VELOCITY = get_velocity(mid)
 
     notes: list[instruction] = get_note_instructions(mid, VELOCITY)
-    
-    cutting_points = sorted(get_cutting_points(get_overlap(notes)))
-    if cutting_points[0] == cutting_points[1] == 0:
-        print('Static')
-        highest_note = max( [i[0] for i in notes] )
-        lowest_note = min( [i[0] for i in notes] )
-        bucket_size = math.ceil((highest_note - lowest_note+1) / BUCKET_NUM) 
-        cutting_points = [lowest_note + bucket_size * i for i in range(1, BUCKET_NUM)]
-    notes = buketfy(notes, cutting_points)
+    compressed_notes = linear_compression(notes)
+    cutting_points = sorted(get_cutting_points(get_overlap(compressed_notes)))
+    notes = combine_buckets(compressed_notes, cutting_points)
+    # if cutting_points[0] == cutting_points[1] == 0:
+    #     print('Static')
+    #     highest_note = max( [i[0] for i in notes] )
+    #     lowest_note = min( [i[0] for i in notes] )
+    #     bucket_size = math.ceil((highest_note - lowest_note+1) / BUCKET_NUM) 
+    #     cutting_points = [lowest_note + bucket_size * i for i in range(1, BUCKET_NUM)]
+    # condensed_notes = buketfy(notes, cutting_points) #these notes are condensed to where each key doesn't overlap
 
-    write_to_csv(file_name, VELOCITY, notes)
+    # write_to_csv(file_name, VELOCITY, notes)
+
+
+def combine_buckets(compressed_notes, cutting_points):
+
+    max_bucket_id = len(cutting_points)
+    new_notes = []
+    bucket_status_end = {i: 0 for i in range(max_bucket_id)}
+    deleted_notes = 0
+    deleted_note_buckets = {i: 0 for i in range(max_bucket_id)}
+    num_notes_in_bucket = {i: 0 for i in range(max_bucket_id)}
+    for note, *rest in compressed_notes:
+        bucket_id = max_bucket_id + note / 100 - 1
+        for i, cutting_point in enumerate(cutting_points):
+            if note < cutting_point:
+                bucket_id = i + note / 100  # cuttedBucket.compressedBucket
+                break
+        if bucket_status_end[int(bucket_id)] > rest[1]:  # if the bucket not empty, then can't add note
+            deleted_notes += 1
+            deleted_note_buckets[int(bucket_id)] += 1
+            continue
+        num_notes_in_bucket[int(bucket_id)] += 1
+        bucket_status_end[int(bucket_id)] = rest[1] + rest[0]
+        
+        new_notes.append([bucket_id, *rest])
+    
+    print("# of deleted notes (overlap):", deleted_notes)
+    if deleted_notes != 0:
+        print(deleted_note_buckets)
+    print(num_notes_in_bucket)
+
+    return new_notes
+        
 
 
 def get_note_instructions(mid, velocity):
@@ -89,11 +145,11 @@ def get_note_instructions(mid, velocity):
 
 
 def write_to_csv(file_name, VELOCITY, notes):
+    return
     with open(OUTPUT_DIR + file_name.replace('.mid', '.csv'), 'w', newline='') as csvfile:
         csvfile.write(str(VELOCITY) + '\n')
         writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         writer.writerows(notes)
-
 
 def buketfy(notes, bucket) -> list[instruction]:
     """
@@ -107,7 +163,7 @@ def buketfy(notes, bucket) -> list[instruction]:
     - Trys setting most of the notes in the middle
     """
     new_notes = []
-    bucket_status_end = {i:0 for i in range(BUCKET_NUM)}
+    bucket_status_end = {i: 0 for i in range(BUCKET_NUM)}
     deleted_notes = 0
     deleted_note_buckets = {i: 0 for i in range(BUCKET_NUM)}
     num_notes_in_bucket = {i: 0 for i in range(BUCKET_NUM)}
@@ -123,13 +179,30 @@ def buketfy(notes, bucket) -> list[instruction]:
             deleted_notes += 1
             deleted_note_buckets[bucket_id] += 1
             continue
-        num_notes_in_bucket[bucket_id] += 1
+        num_notes_in_bucket[bucket_id] += 1   
+
+
+
         bucket_status_end[bucket_id] = note[2] + note[1]
         new_notes.append([bucket_id, *note[1:]])
     print("# of deleted notes (overlap):", deleted_notes)
     # if deleted_notes != 0:
     #     print(deleted_note_buckets)
     # print(num_notes_in_bucket)
+    return new_notes
+
+def linear_compression(notes):
+    # Compress notes into list of minimum buckets so each note is distinct
+    lowest = 0
+    linear_key = {}
+    new_notes = []
+    for note, *rest in notes:
+        if note in linear_key:
+            new_notes.append([linear_key[note], *rest])
+        else:
+            linear_key[note] = lowest
+            new_notes.append([linear_key[note], *rest])
+            lowest += 1
     return new_notes
 
 
@@ -144,6 +217,9 @@ def seperate_by_note(notes) -> dict[int, list[float, float]]:
 
 
 def get_overlap(notes) -> dict[tuple[int, int], int]:
+    """
+    Get the list of two notes that are overlapping with one another
+    """
     overlaps = []
     note_on = {i[0]: -1 for i in notes}
     for i in notes:
@@ -162,42 +238,9 @@ def get_overlap(notes) -> dict[tuple[int, int], int]:
     return overlap_matrix
 
 
-@lru_cache
-def recursive(overlap_matrix: dict[tuple[int, int], int], notes: list[int], bars: list[tuple[int, int]] = None) -> tuple[int, list[tuple[int, int]]]:
-    if bars is None:
-        min_overlap = 10e10
-        min_bars = None
-        for i in range(1, len(notes) - BUCKET_NUM):
-            overlap, _bars = recursive(overlap_matrix, notes, [(0, i - 1), (i, len(notes) - 1)])
-            if overlap < min_overlap:
-                min_overlap = min(min_overlap, overlap)
-                min_bars = _bars
-        return min_overlap, min_bars
-    if len(bars) == BUCKET_NUM:
-        return count_overlap(overlap_matrix, notes, bars)
-    a, _ = bars.pop()
-    min_overlap = 10e10
-    min_bars = None
-    for i in range(a + 1, len(notes) - BUCKET_NUM):
-        overlap, _bars = recursive(overlap_matrix, notes, [(a, i - 1), (i, len(notes) - 1)])
-        if overlap < min_overlap:
-            min_overlap = min(min_overlap, overlap)
-            min_bars = _bars
-    return min_overlap, min_bars
-    
-
-@lru_cache
-def count_overlap(overlap_matrix, notes, bars):
-    overlap = 0
-    for combination in combinations([i for a, b in bars for i in range(notes[a], notes[b]) if i in notes], 2):
-        if combination in overlap_matrix:
-            overlap += 1
-    return overlap
-
-
-def get_cutting_points(overlap_matrix):
+def get_cutting_points(overlap_matrix):  
     """
-    A cutting point is the first point in each bucket
+    Get all cutting point required to prevent overlap
     """
     def cut_matrix(matrix, cut):
         newMatrix = matrix.copy()
@@ -207,7 +250,7 @@ def get_cutting_points(overlap_matrix):
         return newMatrix
 
     cuts = []
-    for _ in range(BUCKET_NUM - 1):
+    for _ in range(MAX_KEYS_IN_NORMAL - 1):
         cutLocations = {i:0 for i in range(128)}
         for pair, n in overlap_matrix.items():
             for cutLocation in range(pair[0]+1, pair[1]+1):
@@ -215,9 +258,35 @@ def get_cutting_points(overlap_matrix):
         
         cutLocationsList = sorted(cutLocations.items(), key=lambda i: i[1], reverse=True)
         cut = cutLocationsList[0][0]
+        if cut == 0:
+            return cuts
         cuts.append(cut) #return most advantageous cut
         overlap_matrix = cut_matrix(overlap_matrix, cut)
     return cuts
+
+# def get_cutting_points_1(notes, cuts):
+#     """
+#     A cutting point is the first point in each bucket
+#     """
+#     def cut_matrix(matrix, cut):
+#         newMatrix = matrix.copy()
+#         for pair, n in matrix.items():
+#             if cut > pair[0] and cut <= pair[1]:
+#                 newMatrix.pop(pair)
+#         return newMatrix
+
+#     cuts = []
+#     for _ in range(max_buckets - 1):
+#         cutLocations = {i:0 for i in range(128)}
+#         for pair, n in overlap_matrix.items():
+#             for cutLocation in range(pair[0]+1, pair[1]+1):
+#                 cutLocations[cutLocation]+=n
+        
+#         cutLocationsList = sorted(cutLocations.items(), key=lambda i: i[1], reverse=True)
+#         cut = cutLocationsList[0][0]
+#         cuts.append(cut) #return most advantageous cut
+#         overlap_matrix = cut_matrix(overlap_matrix, cut)
+#     return cuts
 
 def get_velocity(mid):
     curTime = 0

@@ -155,7 +155,7 @@ class Level(Screen):
         for a in self.holds.keys():
             if type(self.holds[a]) is float:  # is being held
                 if self.holds[a] > 0:
-                    self.holds[a] -= self.dt
+                    self.holds[a] -= self.dt * 60
                 else:
                     self.holds[a] = 0
 
@@ -200,17 +200,17 @@ class Level(Screen):
             self.last_time = pygame.time.get_ticks()
             self.first = False
         clicked = False
+        keys = pygame.key.get_pressed()
         for i in self.notes:  # i = note
-            if i[2] <= 0 <= i[2] + i[1]:  # if key in range
-                if event.key == ord(i[0]):  # the target note is held
-                    clicked = True
-                    if i[3]:
-                        self.holds[i[0]] = i[1] * .5
-                    else:
-                        self.notes.remove(i)
-                        self.total_hits += 1
-                        self.correct_hits += 1
-            else:  # it is a note that is not the lowest so don't check the rest
-                break 
+            if i[2] > 0 or 0 > i[2] + i[1]:  # if key not in range
+                break
+            if not keys[ord(i[0])]: continue
+            clicked = True
+            if i[3]:
+                self.holds[i[0]] = i[1] * .5
+            else:
+                self.notes.remove(i)
+                self.total_hits += 1
+                self.correct_hits += 1
         if not clicked and event.key in range(97, 123):
             self.total_hits += 1
