@@ -224,7 +224,7 @@ class ScrollBar(pygame.sprite.Sprite):
 def draw_rect_alpha(surface, color, rect):
     if pygame.Rect(rect).bottom > 0:
         shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
-        pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
+        pygame.draw.rect(shape_surf, color, shape_surf.get_rect(), width=10, border_radius=5)
         surface.blit(shape_surf, rect)
 
 

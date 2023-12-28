@@ -1,8 +1,11 @@
 FRAME_RATE = 50
 FONT_PATH = "Assets/Fonts/Roboto-Light.ttf"
-# Musics\Fur Elise.wav
 SONG_PATHS = {0: 'Musics/Hot Cross Buns.wav', 1: 'Musics/Twinkle Twinkle Little Star.wav', 2: 'Musics/Happy Birthday.wav',
          3: 'Musics/Jingle Bells.wav', 4: 'Musics/Fur Elise.wav', 5: 'Musics/La Campanella.wav', 6: 'Musics/Rush E.wav'}
+
+LENIENCY = 0.5  # seconds
+
+NOTE_COLOR = 'black'
 
 # required amount of stars for each level
 REQUIREMENTS = {

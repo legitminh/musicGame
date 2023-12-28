@@ -28,9 +28,9 @@ MIN_HOLD_NOTE_LEN: float = 1.0  # min length of a held note (sec)
 MIN_TAP_NOTE_SIZE: int = 10  # pixels
 DEFAULT_VELOCITY: float = 60.0  # velocity used if all notes in a song are held
 MIN_VELOCITY: float = 75
-MAX_VELOCITY: float = 250
+MAX_VELOCITY: float = 500
 # any notes that have a duration less than this value is removed
-MIN_NOTE_LEN_MS: float = 40
+MIN_NOTE_LEN_MS: float = 10
 
 MAX_KEYS_IN_NORMAL: int = 48
 INPUT_DIR = 'Assets/Midi/'
@@ -52,20 +52,21 @@ def process_file(file_name: str) -> None:
     compressed_notes = linear_compression(notes)
     overlap = get_overlap(compressed_notes)
     cutting_points = sorted(get_cutting_points(overlap))
+    notes = combine_buckets(compressed_notes, cutting_points)
     print(len(cutting_points))
 
-    # write_to_csv(file_name, VELOCITY, notes)
+    write_to_csv(file_name, VELOCITY, notes)
 
 
 def combine_buckets(compressed_notes, cutting_points):
     max_bucket_id = len(cutting_points)
     new_notes = []
-    bucket_status_end = {i: 0 for i in range(max_bucket_id)}
+    bucket_status_end = {i: 0 for i in range(max_bucket_id + 1)}
     deleted_notes = 0
-    deleted_note_buckets = {i: 0 for i in range(max_bucket_id)}
-    num_notes_in_bucket = {i: 0 for i in range(max_bucket_id)}
+    deleted_note_buckets = {i: 0 for i in range(max_bucket_id + 1)}
+    num_notes_in_bucket = {i: 0 for i in range(max_bucket_id + 1)}
     for note, *rest in compressed_notes:
-        bucket_id = max_bucket_id + note / 100 - 1
+        bucket_id = max_bucket_id + note / 100
         for i, cutting_point in enumerate(cutting_points):
             if note < cutting_point:
                 bucket_id = i + note / 100  # cuttedBucket.compressedBucket
@@ -113,14 +114,12 @@ def get_note_instructions(mid, velocity):
                 msg.note,
                 round(note_len_px, 3),
                 round(dist_till_note, 3),
-                int(note_len_sec > MIN_HOLD_NOTE_LEN),
                 ])
     # print("# of removed notes (too short):", removed)
     return notes
 
 
 def write_to_csv(file_name, VELOCITY, notes):
-    return
     with open(OUTPUT_DIR + file_name.replace('.mid', '.csv'), 'w', newline='') as csvfile:
         csvfile.write(str(VELOCITY) + '\n')
         writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -202,7 +201,7 @@ def get_velocity(mid):
         if min_note_len < MIN_NOTE_LEN_MS / 1000:
             min_note_len = MIN_NOTE_LEN_MS / 1000
     if min_note_len < MIN_HOLD_NOTE_LEN:
-        VELOCITY = max(MIN_TAP_NOTE_SIZE / min_note_len, MIN_VELOCITY)
+        VELOCITY = max(min(MIN_TAP_NOTE_SIZE / min_note_len, MAX_VELOCITY), MIN_VELOCITY)
     else:  # all notes are to be held
         VELOCITY = DEFAULT_VELOCITY
     return VELOCITY
