@@ -147,7 +147,7 @@ class ScrollBar(pygame.sprite.Sprite):
         pygame.draw.rect(self.surface, self.back_color, self.back_rect)
         self.groups()[0].draw(self.surface)
         for thing in args:
-            text = pygame.font.Font('Fonts/Roboto-Light.ttf', 20).render(str(thing), True, args_c)
+            text = pygame.font.Font('Assets/Fonts/Roboto-Light.ttf', 20).render(str(thing), True, args_c)
             self.surface.blit(text, text.get_rect(center=(self.rect.centerx, self.rect.centery)))
 
     def check_slider_pos(self):
