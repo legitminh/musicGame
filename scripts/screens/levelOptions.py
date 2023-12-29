@@ -20,8 +20,9 @@ class LevelOptions(Screen):
         Args:
             screen (pygame.Surface): The surface that the level object will draw itself on.
             clock (pygame.time.Clock): The clock which will be used to set the maximum fps.
-            **kwargs (Any): Any other arguments, will ignore all values other than `song_id`.
+            **kwargs (Any): Any other arguments, will ignore all values other than `song_id` and `high_scores`.
                 song_id (int): The id of the song that will be played.
+                high_scores (dict[str, float]): The high scores of the player.
         
         Returns:
             None
@@ -30,7 +31,7 @@ class LevelOptions(Screen):
             ValueError: If `song_id` is not included in `kwargs`.
         """
         tmp = kwargs.copy()
-        arguments = {'song_id': int}
+        arguments = {'song_id': int, 'high_scores': dict}
         for kwarg in kwargs:
             if kwarg not in arguments:
                 tmp.pop(kwarg)
@@ -41,7 +42,7 @@ class LevelOptions(Screen):
                 raise ValueError("Key word argument not included or is of an unacceptable type.")
         
         super().__init__(screen, clock, **kwargs)
-        self.song_id = str(self.song_id).replace('e', '')
+        self.song_id = str(self.song_id)
         self.slowdown = 1
         self._mode_buttons_init()
         self._lock_init()
@@ -134,9 +135,9 @@ class LevelOptions(Screen):
                 self._change_slowdown(i)
                 break
             if self.modes_l[i].mode_c in SONG_PATHS:
-                return Redirect(ScreenID.level, slowdown=self.slowdown, song_id=self.song_id, extreme=False)
+                return Redirect(ScreenID.level, slowdown=self.slowdown, song_id=int(self.song_id), extreme=False)
             if self.song_id in self.high_scores:
-                return Redirect(ScreenID.level, slowdown=self.slowdown, song_id=self.song_id, extreme=True)
+                return Redirect(ScreenID.level, slowdown=self.slowdown, song_id=int(self.song_id.replace('e', '')), extreme=True)
             break
 
     def _change_slowdown(self, sprite_i) -> None:

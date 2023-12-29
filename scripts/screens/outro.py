@@ -25,7 +25,7 @@ class Outro(Screen):
             **kwargs (Any): Any other arguments, will ignore all values other than `song_id`, `score`, `slowdown`, and `high_scores`.
                 song_id (int): The id of the song that will be played.
                 score (float): The score of the player.
-                slowdown (float): The amount the song will be slow downed 
+                slowdown (int | float): The amount the song will be slow downed 
                     (will run the pre-slow-downed version of the song located in the "ProcessedMusics" directory)
                 high_scores (dict[str, float]): The high scores of the player.
         
@@ -36,7 +36,7 @@ class Outro(Screen):
             ValueError: If `song_id`, `score`, `slowdown`, or `high_scores` are not in `kwargs`.
         """
         tmp = kwargs.copy()
-        arguments = {'song_id': int, 'score': float, 'slowdown': float, 'high_scores': dict}
+        arguments = {'song_id': int, 'score': float, 'slowdown': int | float, 'high_scores': dict}
         for kwarg in kwargs:
             if kwarg not in arguments:
                 tmp.pop(kwarg)
@@ -44,6 +44,7 @@ class Outro(Screen):
         kwargs = tmp
         for arg, arg_type in arguments.items():
             if arg not in kwargs or not isinstance(kwargs[arg], arg_type):
+                print(arg)
                 raise ValueError("Key word argument not included or is of an unacceptable type.")
         
         super().__init__(screen, clock, **kwargs)

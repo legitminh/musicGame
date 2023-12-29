@@ -65,7 +65,7 @@ class Level(Screen):
                 volume (float): The volume the songs will be played at.
                 song_id (int): The id of the song that will be played. 
                 extreme (bool): If the level will be the "extreme" varient.
-                slowdown (float): The amount the song will be slow downed 
+                slowdown (int | float): The amount the song will be slow downed 
                     (will run the pre-slow-downed version of the song located in the "ProcessedMusics" directory)
         
         Returns: 
@@ -75,7 +75,7 @@ class Level(Screen):
             ValueError: If `volume`, `song_id`, `extreme`, or `slowdown` are not included in `kwargs`.
         """
         tmp = kwargs.copy()
-        arguments = {'volume': float, 'song_id': int, 'extreme': bool, 'slowdown': float}
+        arguments = {'volume': float, 'song_id': int, 'extreme': bool, 'slowdown': int | float}
         for kwarg in kwargs:
             if kwarg not in arguments:
                 tmp.pop(kwarg)
@@ -180,16 +180,16 @@ class Level(Screen):
         """
         if len(self.notes) == 0:  # check if finished song
             pygame.mixer.music.stop()
-            song_id = (str(self.song_id) + 'e') if self.extreme else self.song_id
             try:
                 return Redirect(
                     ScreenID.outro, 
-                    song_id=song_id, 
+                    song_id=self.song_id, 
                     score=self.correct_hits / self.total_hits * 100,
                     slowdown=self.slowdown,
+                    extreme=self.extreme
                     )
             except ZeroDivisionError:
-                return Redirect(ScreenID.levelOptions, song_id=song_id)
+                return Redirect(ScreenID.levelOptions, song_id=self.song_id)
         for note in self.notes:
             if note[DURATION_INDEX] + note[DIST_FROM_BOTOM_INDEX] >= -self.screen.get_height() * (1 - LINE_LEVEL): # top of note above the hititng bar
                 break

@@ -195,7 +195,7 @@ class Menu(Screen):
         clicked_pos = pygame.mouse.get_pos()
         for i, sprite in enumerate(self.level_select_g.sprites()):
             if sprite.rect.collidepoint(clicked_pos) and isinstance(self.level_select_l[i].mode_c, int):
-                self.song_id = str(self.level_select_l[i].mode_c)
+                self.song_id = self.level_select_l[i].mode_c
                 return Redirect(ScreenID.levelOptions, song_id=self.song_id)
         if self.slider.back_rect.collidepoint(clicked_pos):
             self.mouse_down = True
