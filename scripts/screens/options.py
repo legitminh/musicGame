@@ -1,3 +1,10 @@
+"""
+This file handels displaying the options screen.
+
+TODO: player controls note speed
+"""
+
+
 import pygame
 from interfaces import *
 from UI import Button, ScrollBar
@@ -5,9 +12,39 @@ from .screen import Screen
 from constants import *
 
 class Options(Screen):
+    """
+    This class handels displaying the options screen and player interaction.    
+    """
     mouse_down = False
 
-    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs):
+    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs) -> None:
+        """
+        Initializes the options screen.
+
+        Args:
+            screen (pygame.Surface): The surface that the level object will draw itself on.
+            clock (pygame.time.Clock): The clock which will be used to set the maximum fps.
+            **kwargs (Any): Any other arguments, will ignore all values other than `volume`.
+                volume (float): The volume diplayed on the scroll bar.
+        
+        Returns:
+            None
+        
+        Raises:
+            ValueError: If `volume` is not included `kwargs`.
+        """
+        
+        tmp = kwargs.copy()
+        arguments = {'volume': float}
+        for kwarg in kwargs:
+            if kwarg not in arguments:
+                tmp.pop(kwarg)
+        
+        kwargs = tmp
+        for arg, arg_type in arguments.items():
+            if arg not in kwargs or not isinstance(kwargs[arg], arg_type):
+                raise ValueError("Key word argument not included or is of an unacceptable type.")
+
         super().__init__(screen, clock, **kwargs)
         self.user_interfaces = [
             Button(self.screen, [self.screen.get_width() / 2, 50], None, 'Options', 50),
@@ -18,7 +55,16 @@ class Options(Screen):
                                 orientation='horizontal', start_pos=[50 + (self.volume * (self.screen.get_width() - 150)), 160])
         self.sliders = pygame.sprite.Group(self.sound_slider)
 
-    def loop(self):
+    def loop(self) -> None:
+        """
+        The main game loop.
+
+        Returns:
+            Redirect: A screen redirect.
+        
+        Raises:
+            ExitException: If the user exits out of the screen.
+        """
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -35,7 +81,13 @@ class Options(Screen):
                 self.sound_slider.click_drag(pygame.mouse.get_pos())
             self._draw()
 
-    def _draw(self):
+    def _draw(self) -> None:
+        """
+        Draws all elements onto the screen.
+
+        Returns:
+            None
+        """
         self.screen.fill('light gray')
         self.volume = int(self.sound_slider.rect.topleft[0] - self.sound_slider.start_pos[0]) / (
                     self.sound_slider.end_pos[0] - self.sound_slider.start_pos[0] - self.sound_slider.rect.width)
@@ -45,7 +97,13 @@ class Options(Screen):
         self.clock.tick(FRAME_RATE)
         pygame.display.update()
 
-    def _video_resize(self):
+    def _video_resize(self) -> None:
+        """
+        Updates sliders on screen resize.
+
+        Returns:
+            None
+        """
         self.sound_slider.end_pos = self.screen.get_width() - 25, 180
         self.sound_slider.update(screen_change=True)
         leng = self.sound_slider.end_pos[0] - self.sound_slider.start_pos[0] - self.sound_slider.rect.width
@@ -55,7 +113,13 @@ class Options(Screen):
             L[0] = self.screen.get_width() / 2
             sprite.rect.center = L[0], L[1]
 
-    def _left_click(self):
+    def _left_click(self) -> None:
+        """
+        Updates sliders on left click.
+
+        Returns:
+            None
+        """
         clicked_pos = pygame.mouse.get_pos()
         if self.sound_slider.back_rect.collidepoint(clicked_pos):
             self.sound_slider.click_drag(clicked_pos)

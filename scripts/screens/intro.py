@@ -1,3 +1,8 @@
+"""
+This files handels displaying the intro screen.
+"""
+
+
 import pygame
 from interfaces import *
 from UI import Button
@@ -6,7 +11,28 @@ from constants import *
 
 
 class Intro(Screen):
-    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs):
+    """
+    This class handels displaying the intro and player interaction.
+    """
+    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs) -> None:
+        """
+        Creates a intro object.
+
+        Args:
+            screen (pygame.Surface): The surface that the level object will draw itself on.
+            clock (pygame.time.Clock): The clock which will be used to set the maximum fps.
+            **kwargs (Any): Any other arguments, will ignore all values.
+
+        Returns:
+            None
+        """
+        tmp = kwargs.copy()
+        arguments = {'volume': float, 'song_id': int, 'extreme': bool, 'slowdown': float}
+        for kwarg in kwargs:
+            if kwarg not in arguments:
+                tmp.pop(kwarg)
+        kwargs = tmp
+
         super().__init__(screen, clock, **kwargs)
         self.intro_g = pygame.sprite.Group()
         self.intro_l = [
@@ -16,7 +42,16 @@ class Intro(Screen):
         ]
         self.intro_g.add(self.intro_l)
 
-    def loop(self):
+    def loop(self) -> Redirect | None:
+        """
+        The main game loop.
+
+        Returns:
+            Redirect: A screen redirect.
+        
+        Raises:
+            ExitException: If the user exits out of the screen.
+        """
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -29,14 +64,27 @@ class Intro(Screen):
                         return ret_val
             self._draw()
 
-    def _draw(self):
+    def _draw(self) -> None:
+        """
+        Draws all elements onto the screen.
+
+        Returns:
+            None
+        """
         self.screen.fill('light gray')
         self.clock.tick(FRAME_RATE)
         self.intro_g.draw(self.screen)
         self.intro_g.update()
         pygame.display.update()
 
-    def _button_clicked(self):
+    def _button_clicked(self) -> Redirect | None:
+        """
+        Updates the buttons based on click location and redirects if certain buttons are clicked.
+
+        Returns:
+            Redirect: If certain buttons are clicked.
+            None: If other buttons are clicked.
+        """
         x, y = pygame.mouse.get_pos()
         for i, sprite in enumerate(self.intro_g.sprites()):
             if sprite.rect.collidepoint(x, y):

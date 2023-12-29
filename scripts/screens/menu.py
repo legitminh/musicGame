@@ -1,3 +1,8 @@
+"""
+This file handels displaying the menu screen.
+"""
+
+
 import pygame
 from interfaces import *
 from UI import Button, ScrollBar
@@ -6,13 +11,42 @@ from constants import *
 
 
 class Menu(Screen):
+    """
+    This class handels displaying the menu and player interaction.
+    """
     level_amount = 10
     dy = 0
     mouse_down = False
     slider_velocity = 0
     prev_time = pygame.time.get_ticks()
         
-    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs):
+    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs) -> None:
+        """
+        Creates a menu object.
+
+        Args:
+            screen (pygame.Surface): The surface that the level object will draw itself on.
+            clock (pygame.time.Clock): The clock which will be used to set the maximum fps.
+            **kwargs (Any): Any other arguments, will ignore all values other than `high_scores`.
+                high_scores (dict[str, float]): The high scores of the player.
+        
+        Returns:
+            None
+
+        Raises:
+            ValueError: If `high_scores` is not included in `kwargs`.
+        """
+        tmp = kwargs.copy()
+        arguments = {'high_scores': dict}
+        for kwarg in kwargs:
+            if kwarg not in arguments:
+                tmp.pop(kwarg)
+        
+        kwargs = tmp
+        for arg, arg_type in arguments.items():
+            if arg not in kwargs or not isinstance(kwargs[arg], arg_type):
+                raise ValueError("Key word argument not included or is of an unacceptable type.")
+        
         super().__init__(screen, clock, **kwargs)
 
         self._high_scores_init()
@@ -22,7 +56,16 @@ class Menu(Screen):
         self._level_init()
         self._slider_init()
     
-    def loop(self):
+    def loop(self) -> Redirect:
+        """
+        The main game loop.
+
+        Returns:
+            Redirect: A screen redirect.
+        
+        Raises:
+            ExitException: If the user exits out of the screen.
+        """
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -49,7 +92,13 @@ class Menu(Screen):
             self._slider_update()
             self._draw()
 
-    def _level_init(self):
+    def _level_init(self) -> None:
+        """
+        Initializes the level buttons.
+
+        Returns:
+            None
+        """
         self.level_select_g = pygame.sprite.Group()
         self.level_select_l = []
 
@@ -74,13 +123,25 @@ class Menu(Screen):
         self.lock_g.add(self.lock_l)
         self.level_select_g.add(self.level_select_l)
 
-    def _slider_init(self):
+    def _slider_init(self) -> None:
+        """
+        Initializes the slider.
+
+        Returns:
+            None
+        """
         self.slider = ScrollBar(self.screen, [0, 100], [10, self.screen.get_height()], [10, 50], 'black', 'dark gray')
         self.slider_g = pygame.sprite.GroupSingle(self.slider)
         self.index = 1 if self.slider.orientation == 'vertical' else 0
         self.slider.step_size = (self.slider.end_pos[self.index] - self.slider.start_pos[self.index] - self.slider.dim[self.index]) / self.total_items_len
 
-    def _misc_init(self):
+    def _misc_init(self) -> None:
+        """
+        Initializes other buttons.
+
+        Returns:
+            None
+        """
         self.misc_g = pygame.sprite.Group()
         self.misc_l = [
             Button(self.screen, [self.screen.get_width() / 2, 50], None, 'Choose a Level!', 50),
@@ -88,7 +149,13 @@ class Menu(Screen):
         ]
         self.misc_g.add(self.misc_l)
 
-    def _stars_init(self):
+    def _stars_init(self) -> None:
+        """
+        Initializes the star buttons.
+
+        Returns:
+            None
+        """
         self.stars_g = pygame.sprite.Group()
         self.stars_l = []
         self.star_count = 0
@@ -101,7 +168,13 @@ class Menu(Screen):
             )
         self.stars_g.add(self.stars_l)
 
-    def _high_scores_init(self):
+    def _high_scores_init(self) -> None:
+        """
+        Initializes the buttons displaying high scores.
+        
+        Returns:
+            None
+        """
         self.high_score_g = pygame.sprite.Group()
         self.high_score_l = []
         for _i in range(self.level_amount):
@@ -111,7 +184,14 @@ class Menu(Screen):
             )
         self.high_score_g.add(self.high_score_l)
     
-    def _left_click(self):
+    def _left_click(self) -> Redirect | None:
+        """
+        Updates buttons based on left click.
+
+        Returns:
+            Redirect: If the user clicks on certain buttons.
+            None: If the user clicks on other buttons.
+        """
         clicked_pos = pygame.mouse.get_pos()
         for i, sprite in enumerate(self.level_select_g.sprites()):
             if sprite.rect.collidepoint(clicked_pos) and isinstance(self.level_select_l[i].mode_c, int):
@@ -121,7 +201,13 @@ class Menu(Screen):
             self.mouse_down = True
             self.dy = self.slider.click_drag(clicked_pos)
 
-    def _video_resize(self):
+    def _video_resize(self) -> None:
+        """
+        Updates the slider based on a screen resize event.
+
+        Returns:
+            None
+        """
         self.slider.end_pos = [10, self.screen.get_height()]
         self.slider.update(screen_change=True)
         self.total_items_len = self.level_select_l[-1].rect.bottom - self.level_select_l[0].rect.top - self.screen.get_height() + 100
@@ -130,7 +216,13 @@ class Menu(Screen):
         self.slider.step_size = self.slider.step_size
         self.misc_l[0].rect.center = [self.screen.get_width() / 2, 50]
 
-    def _draw(self):
+    def _draw(self) -> None:
+        """
+        Draws all elements onto the screen.
+
+        Returns:
+            None
+        """
         self.screen.fill('light gray')
         height = self.screen.get_height()
         to_draw = pygame.sprite.Group()
@@ -148,7 +240,13 @@ class Menu(Screen):
         pygame.display.update()
         self.clock.tick(FRAME_RATE)
 
-    def _slider_update(self):
+    def _slider_update(self) -> None:
+        """
+        Updates the slider.
+
+        Returns:
+            None
+        """
         if self.mouse_down:
             self.dy = self.slider.click_drag(pygame.mouse.get_pos())
         if self.total_items_len > 0:
@@ -174,17 +272,32 @@ class Menu(Screen):
         for i, sprite in enumerate(self.lock_l):
             sprite.set_pos((15, INVREQUIREMENTS[int(sprite.text)] * 60 + 95 - self.dy))
 
-    def _get_score(self, _i):
-        if str(_i) not in self.high_scores:
+    def _get_score(self, i) -> float:
+        """
+        Gets the high scores of level `i`.
+
+        Args:
+            i (int): The level id.
+        
+        Returns:
+            Score (float): The score.
+        """
+        if str(i) not in self.high_scores:
             score = 0
         else:
-            score = self.high_scores[str(_i)]
-        if str(_i) + 'e' in self.high_scores:
-            score += self.high_scores[str(_i) + 'e']
+            score = self.high_scores[str(i)]
+        if str(i) + 'e' in self.high_scores:
+            score += self.high_scores[str(i) + 'e']
         return score
 
-    def _calc_stars(self, _i):
-        high_score = self._get_score(_i)
+    def _calc_stars(self, i) -> int:
+        """
+        Calculates the number of stars.
+
+        Returns:
+            Stars (int): The number of stars based on high scores.
+        """
+        high_score = self._get_score(i)
         for score, stars in SCORE2STARS.items():
             if high_score <= score:
                 return stars

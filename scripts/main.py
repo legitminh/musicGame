@@ -1,11 +1,8 @@
 """
-This file is the scene manager and highest level runner
+This file handels entering and exiting from the program.
 
-1. understand code
-2. rewrite the code to be more understadable
-3. rework machine notes (compactify)
-4. automatic song generation
-    - convert mp3/wav -> machine notes
+TODO: convert mp3/wav to machine notes.
+TODO: provide more support for resizing the screen.
 """
 
 import pygame
@@ -30,13 +27,14 @@ pygame.display.set_icon(img)
 
 screen.fill('dark gray')
 
-#Game-wide critical variables
+# Game-wide critical variables
 clock = pygame.time.Clock()
-volume = .2
+volume = .2  # TODO: store volume inside of player data
 high_scores: dict[str, float] = {}
 
 
 def main():
+    """Handels screen redirects and stores the player's scores"""
     redirect: Redirect = Redirect(ScreenID.intro)
     conversion_table: dict[ScreenID, Screen] = {
         ScreenID.intro:        Intro,        # Kwargs: None
@@ -60,7 +58,8 @@ def main():
             exit()
 
 
-def file_writer() -> None: #save notes into file 
+def file_writer() -> None: 
+    """Saves high scores into the `PlayerData` file."""
     with open('PlayerData', mode='w') as f:
         write = ''
         for level_n, percent in high_scores.items():
@@ -68,7 +67,8 @@ def file_writer() -> None: #save notes into file
         f.write(write)
 
 
-def file_reader():
+def file_reader() -> None:
+    """Reads high scores from the `PlayerData` file."""
     global high_scores
     with open('PlayerData', mode='r') as f:
         for line in f.read().strip().split():

@@ -1,3 +1,8 @@
+"""
+TODO: correct the scroll bar calculation
+"""
+
+
 import pygame
 from enum import Enum
 from constants import *

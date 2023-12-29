@@ -27,7 +27,7 @@ from os import listdir
 MIN_HOLD_NOTE_LEN: float = 1.0  # min length of a held note (sec)
 MIN_TAP_NOTE_SIZE: int = 10  # pixels
 DEFAULT_VELOCITY: float = 60.0  # velocity used if all notes in a song are held
-MIN_VELOCITY: float = 75
+MIN_VELOCITY: float = 150
 MAX_VELOCITY: float = 500
 # any notes that have a duration less than this value is removed
 MIN_NOTE_LEN_MS: float = 10
