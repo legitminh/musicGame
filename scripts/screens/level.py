@@ -14,12 +14,12 @@ from UI import make_text, draw_rect_alpha
 from .screen import Screen
 from constants import *
 from typing import Any
+from screens.note import Note, NoteGroup
 
 
 BUCKET_NUMBER_INDEX = 0
 DURATION_INDEX = 1
 DIST_FROM_BOTOM_INDEX = 2
-LINE_LEVEL = 0.8
 
 
 class Level(Screen):
@@ -44,7 +44,8 @@ class Level(Screen):
         *"`1234567890-",
         "Tb",*"qwertyuiop[",
         "Cp",*"asdfghjkl;'",
-        "Ls",*"zxcvbnm,./","Rs"
+        "Ls",*"zxcvbnm,./","Rs",
+        "#"
     ]
     dt = 0
 
@@ -107,12 +108,10 @@ class Level(Screen):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE: #ESC to exit song
                         pygame.mixer.music.stop()
-                        return Redirect(ScreenID.levelOptions, song_id=(str(self.song_id) + 'e') if self.extreme else self.song_id)
+                        return Redirect(ScreenID.levelOptions, song_id=self.song_id)
                     self._key_down(event)
                 elif event.type == pygame.KEYUP:
                     self._key_up(event)
-                elif event.type == pygame.VIDEORESIZE:
-                    self.bucket_size = self.screen.get_width() / self.bucket_number
             self.dt = (pygame.time.get_ticks() - self.last_time) / 1000
             if self.first_hit: self.dt = 0
             self.last_time = pygame.time.get_ticks()
@@ -130,18 +129,8 @@ class Level(Screen):
         Returns:
             None
         """
-        bucket = int | float
-        duration = float
-        dist_from_bottom = float
-        self.notes: list[list[bucket, duration, dist_from_bottom]]
+        self.notes: NoteGroup
         self.velocity, self.notes = midi_note_extractor(self.song_id, self.slowdown, self.extreme)
-        # get bucket number
-        buckets = set(note[0] for note in self.notes)
-        self.bucket_number = len(buckets)
-        if self.extreme:
-            bucket_conv = {e: i for i, e in enumerate(sorted(buckets))}
-            self.notes = [[bucket_conv[bucket_id], *rest] for bucket_id, *rest in self.notes]
-        self.bucket_size = self.screen.get_width() / self.bucket_number
 
     def _all_note_cycle(self) -> None:  # note GFX
         """
@@ -150,15 +139,8 @@ class Level(Screen):
         Returns:
             None
         """
-        for note in self.notes:
-            draw_rect_alpha(
-                self.screen, NOTE_COLOR, (  # every bucket is in one row
-                note[BUCKET_NUMBER_INDEX] * self.bucket_size, 
-                self.screen.get_height() * LINE_LEVEL - note[DIST_FROM_BOTOM_INDEX] - note[DURATION_INDEX],
-                self.bucket_size, note[DURATION_INDEX],
-                )
-            )
-            note[DIST_FROM_BOTOM_INDEX] -= self.dt * self.velocity
+        self.notes.draw(self.screen)
+        self.notes.update(self.dt * self.velocity)
     
     def _draw_key_names(self) -> None:
         """
@@ -167,8 +149,8 @@ class Level(Screen):
         Returns:
             None
         """
-        for bucket in range(self.bucket_number):
-            make_text(self.screen, self.bucket_size * (bucket + 0.5), self.screen.get_height() * .9, self.bucket_name_order[bucket])
+        for bucket in range(self.notes.num_buckets):
+            make_text(self.screen, self.screen.get_width() / self.notes.num_buckets * (bucket + 0.5), self.screen.get_height() * .9, self.bucket_name_order[bucket])
     
     def _update_notes(self) -> Redirect | None:
         """
@@ -191,7 +173,7 @@ class Level(Screen):
             except ZeroDivisionError:
                 return Redirect(ScreenID.levelOptions, song_id=self.song_id)
         for note in self.notes:
-            if note[DURATION_INDEX] + note[DIST_FROM_BOTOM_INDEX] >= -self.screen.get_height() * (1 - LINE_LEVEL): # top of note above the hititng bar
+            if note.note_duration + note.dist_from_bottom >= -self.screen.get_height() * (1 - LINE_LEVEL): # top of note above the hititng bar
                 break
             self.total_hits += 1
             self.notes.pop(0)
@@ -205,10 +187,11 @@ class Level(Screen):
         """
         line_px_level = int(self.screen.get_height() * LINE_LEVEL)
         self.screen.fill('gray')
-        pygame.draw.line(self.screen, 'black', (0, line_px_level), (self.screen.get_width(), line_px_level))
             
         self._all_note_cycle()
         self._draw_key_names()
+        
+        pygame.draw.line(self.screen, 'black', (0, line_px_level), (self.screen.get_width(), line_px_level))
         try:
             make_text(self.screen, self.screen.get_width() / 2, 20, round(self.correct_hits / self.total_hits * 100, 2))
         except ZeroDivisionError:
@@ -223,16 +206,15 @@ class Level(Screen):
         Returns:
             None
         """
+        self.total_hits += 1
         bucket_id = self._convert_key_to_bucket_id(event.key)
         if bucket_id is None: return
-        for i, note in enumerate(self.notes):
-            if note[BUCKET_NUMBER_INDEX] != bucket_id:
-                continue
-            if not (note[DIST_FROM_BOTOM_INDEX] <= 0 <= note[DIST_FROM_BOTOM_INDEX] + note[DURATION_INDEX]):  # if not in colliding range
+        for note in self.notes.get_bucket(bucket_id):
+            note.unpressed()
+            if 0 < note.dist_from_bottom:  # if not in colliding range
                 break
-            if abs(note[DIST_FROM_BOTOM_INDEX] + note[DURATION_INDEX]) <= LENIENCY * self.velocity:
-                self.notes.pop(i)
-                self.total_hits += 1
+            if abs(note.dist_from_bottom + note.note_duration) <= LENIENCY * self.velocity:
+                self.notes.remove(note)
                 self.correct_hits += 1
                 break
 
@@ -243,11 +225,10 @@ class Level(Screen):
         Returns:
             None
         """
-        for note in self.notes:
-            if note[BUCKET_NUMBER_INDEX] != bucket_id: continue
-            if abs(note[DIST_FROM_BOTOM_INDEX]) <= LENIENCY * self.velocity:
-                self.total_hits += 1
+        for note in self.notes.get_bucket(bucket_id):
+            if abs(note.dist_from_bottom) <= LENIENCY * self.velocity:
                 self.correct_hits += 1
+                note.pressed()
                 break
     
     def _convert_key_to_bucket_id(self, key) -> int | None:
@@ -268,7 +249,7 @@ class Level(Screen):
         Returns:
             None
         """
-        #start the song
+        # start the song
         if self.first_hit:
             if self.slowdown < 1:
                 pygame.mixer.music.load(SONG_PATHS[self.song_id].replace("Musics/","ProcessedMusics/").replace(".wav",f'{int(self.slowdown * 100)}.wav'))
@@ -277,6 +258,9 @@ class Level(Screen):
             pygame.mixer.music.play()
             self.last_time = pygame.time.get_ticks()
             self.first_hit = False
+            return
+        self.total_hits += 1
+        
         bucket_id = self._convert_key_to_bucket_id( event.key )
         if bucket_id is None: return
         self._down_hit(bucket_id)

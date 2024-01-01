@@ -4,8 +4,10 @@ SONG_PATHS = {0: 'Musics/Hot Cross Buns.wav', 1: 'Musics/Twinkle Twinkle Little 
          3: 'Musics/Jingle Bells.wav', 4: 'Musics/Fur Elise.wav', 5: 'Musics/La Campanella.wav', 6: 'Musics/Rush E.wav'}
 
 LENIENCY = 0.5  # seconds
+LINE_LEVEL = 0.8
 
 NOTE_COLOR = 'black'
+FILL_COLOR = 'dark gray'
 
 # required amount of stars for each level
 REQUIREMENTS = {

@@ -1,7 +1,7 @@
 """
 This file handels displaying the options screen.
 
-TODO: player controls note speed
+TODO: player controls note speed (velocity)
 """
 
 

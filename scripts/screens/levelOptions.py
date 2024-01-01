@@ -130,15 +130,17 @@ class LevelOptions(Screen):
             if not sprite.rect.collidepoint(clicked_pos):
                 continue
             if self.modes_l[i].mode_c is None:
-                continue
+                break
             if '.' in str(self.modes_l[i].mode_c):
                 self._change_slowdown(i)
                 break
             if self.modes_l[i].mode_c in SONG_PATHS:
                 return Redirect(ScreenID.level, slowdown=self.slowdown, song_id=int(self.song_id), extreme=False)
-            if self.song_id in self.high_scores:
-                return Redirect(ScreenID.level, slowdown=self.slowdown, song_id=int(self.song_id.replace('e', '')), extreme=True)
-            break
+            # if self.song_id in self.high_scores:
+            if 'e' in self.modes_l[i].mode_c:
+                song = self.modes_l[i].mode_c.replace('e', '')
+                if song in self.high_scores and self.high_scores[song] >= 100:
+                    return Redirect(ScreenID.level, slowdown=self.slowdown, song_id=int(self.song_id.replace('e', '')), extreme=True)
 
     def _change_slowdown(self, sprite_i) -> None:
         """
