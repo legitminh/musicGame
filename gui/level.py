@@ -37,7 +37,8 @@ class Level(Screen):
         pygame.K_TAB, pygame.K_q, pygame.K_w, pygame.K_e, pygame.K_r, pygame.K_t, pygame.K_y, pygame.K_u, pygame.K_i, pygame.K_o, pygame.K_p, pygame.K_LEFTBRACKET,
         pygame.K_CAPSLOCK, pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_f, pygame.K_g, pygame.K_h, pygame.K_j, pygame.K_k, pygame.K_l, pygame.K_SEMICOLON, pygame.K_QUOTE,
         pygame.K_LSHIFT, pygame.K_z, pygame.K_x, pygame.K_c, pygame.K_v, pygame.K_b, pygame.K_n, pygame.K_m, pygame.K_COMMA, pygame.K_PERIOD, pygame.K_SLASH, pygame.K_RSHIFT,
-        pygame.K_EQUALS, pygame.K_RIGHTBRACKET, pygame.K_BACKSPACE, pygame.K_BACKSLASH, pygame.K_SPACE, pygame.K_LEFT, pygame.K_UP, pygame.K_DOWN, pygame.K_RIGHT, pygame.K_KP_DIVIDE, pygame.K_KP_MULTIPLY, pygame.K_KP_MINUS
+        pygame.K_EQUALS, pygame.K_RIGHTBRACKET, pygame.K_BACKSPACE, pygame.K_BACKSLASH, pygame.K_SPACE, pygame.K_LEFT, pygame.K_UP, pygame.K_DOWN, pygame.K_RIGHT, pygame.K_KP_DIVIDE, pygame.K_KP_MULTIPLY, pygame.K_KP_MINUS,
+        pygame.K_F1, pygame.K_F2,pygame.K_F3,pygame.K_F4,pygame.K_F5,pygame.K_F6,pygame.K_F7,pygame.K_F8,pygame.K_F9,pygame.K_F10,pygame.K_F11,pygame.K_F12,
     ]
     # the names of the buckets
     bucket_name_order = [
@@ -45,7 +46,9 @@ class Level(Screen):
         "Tb",*"qwertyuiop[",
         "Cp",*"asdfghjkl;'",
         "Ls",*"zxcvbnm,./","Rs",
-        *"=]", "Bs", "\\", "Sp", "<-", "^|", "v|", "->", "P/", "P*", "P-"
+        *"=]", "Bs", "\\", "Sp", "<-", "^|", "v|", "->", "P/", "P*", "P-",
+        "F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12",
+        
     ]
     dt = 0
 
@@ -213,7 +216,7 @@ class Level(Screen):
             note.unpressed()
             if 0 < note.dist_from_bottom:  # if not in colliding range
                 break
-            if abs(note.dist_from_bottom + note.note_duration) <= LENIENCY * self.velocity:
+            if 0 < note.dist_from_bottom + note.note_duration <= LENIENCY * self.velocity:
                 self.notes.remove(note)
                 self.correct_hits += 1
                 break
@@ -226,8 +229,9 @@ class Level(Screen):
             None
         """
         for note in self.notes.get_bucket(bucket_id):
-            if abs(note.dist_from_bottom) <= LENIENCY * self.velocity:
+            if 0 > note.dist_from_bottom >= -LENIENCY * self.velocity and not note.key_down_awarded:
                 self.correct_hits += 1
+                note.key_down_awarded = True
                 note.pressed()
                 break
     

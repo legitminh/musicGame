@@ -9,6 +9,7 @@ class Note:
     A class to represent a note.
     """
     __is_held = False
+    key_down_awarded = False
 
     def __init__(self, bucket_number: int | float, note_duration: float, dist_from_bottom: float) -> None:
         """
@@ -43,14 +44,14 @@ class Note:
         """
         if self.__is_held and self.dist_from_bottom + self.note_duration > 0:
             draw_rect_alpha(
-                screen, FILL_COLOR, (  # every bucket is in one row
+                screen, FILL_COMPLETE_COLOR if 0 < self.dist_from_bottom + self.note_duration <= 0.5 * 150 else FILL_COLOR, (  # every bucket is in one row
                 self.bucket_number * bucket_size, 
                 screen.get_height() * LINE_LEVEL,
                 bucket_size, abs(self.dist_from_bottom),
                 ), width=0,
             )
         draw_rect_alpha(
-            screen, NOTE_COLOR, (  # every bucket is in one row
+            screen, "green" if 0 > self.dist_from_bottom >= -.5 * 150 else 'red', (  # every bucket is in one row
             self.bucket_number * bucket_size, 
             screen.get_height() * LINE_LEVEL - self.dist_from_bottom - self.note_duration,
             bucket_size, self.note_duration,
@@ -113,7 +114,7 @@ class NoteGroup:
             else:
                 self.buckets[note.bucket_number] = [note]
         
-
+    
     
     def update(self, dt: float) -> None:
         """
@@ -197,7 +198,7 @@ class NoteGroup:
         Returns:
             Iterable[Note]: an iterator of `self.all_notes`.
         """
-        return iter(self.notes)
+        return iter(self.notes.copy())
     
     def __len__(self) -> int:
         """

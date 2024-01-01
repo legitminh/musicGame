@@ -8,6 +8,7 @@ LINE_LEVEL = 0.8
 
 NOTE_COLOR = 'black'
 FILL_COLOR = 'dark gray'
+FILL_COMPLETE_COLOR = 'light green'
 
 # required amount of stars for each level
 REQUIREMENTS = {
