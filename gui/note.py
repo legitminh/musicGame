@@ -1,5 +1,5 @@
 import pygame
-from UI import draw_rect_alpha
+from .UI import draw_rect_alpha
 from constants import *
 from collections.abc import Iterable
 
@@ -143,7 +143,9 @@ class NoteGroup:
         Returns:
             list[Note]: A list of all notes with a bucket number of `bucket_number`.
         """
-        return self.buckets[bucket_number]
+        if bucket_number in self.buckets:
+            return self.buckets[bucket_number]
+        return []
     
     def pop(self, index: int = -1) -> Note:
         """

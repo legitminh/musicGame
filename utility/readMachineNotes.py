@@ -1,6 +1,6 @@
 import csv
 from constants import SONG_PATHS
-from screens.note import Note, NoteGroup
+from gui.note import Note, NoteGroup
 
 
 def midi_note_extractor(which_level: int, slowdown: float, extreme: bool) -> tuple[float, NoteGroup]:

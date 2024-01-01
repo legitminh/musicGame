@@ -4,8 +4,8 @@ This file handels displaying the menu screen.
 
 
 import pygame
-from interfaces import *
-from UI import Button, ScrollBar
+from .interfaces import *
+from .UI import Button, ScrollBar
 from .screen import Screen
 from constants import *
 

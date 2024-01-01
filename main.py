@@ -6,15 +6,15 @@ TODO: provide more support for resizing the screen.
 """
 
 import pygame
-from screens.screen import Screen
-from screens.intro import Intro
-from screens.options import Options
-from screens.menu import Menu
-from screens.levelOptions import LevelOptions
-from screens.level import Level
-from screens.outro import Outro
-from UI import *
-from interfaces import *
+from gui.screen import Screen
+from gui.intro import Intro
+from gui.options import Options
+from gui.menu import Menu
+from gui.levelOptions import LevelOptions
+from gui.level import Level
+from gui.outro import Outro
+from gui.UI import *
+from gui.interfaces import *
 
 
 pygame.init()

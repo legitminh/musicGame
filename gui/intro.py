@@ -4,8 +4,8 @@ This files handels displaying the intro screen.
 
 
 import pygame
-from interfaces import *
-from UI import Button
+from .interfaces import *
+from .UI import Button
 from .screen import Screen
 from constants import *
 

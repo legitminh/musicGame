@@ -6,7 +6,7 @@ TODO: correct the scroll bar calculation
 import pygame
 from enum import Enum
 from constants import *
-from typing import Any
+from typing import Any, Callable
 
 
 class Button(pygame.sprite.Sprite):
@@ -102,9 +102,9 @@ class AlignmentTypes(Enum):
 
 class ScrollBar(pygame.sprite.Sprite):
     def __init__(self,
-                 surface,
-                 start_p,
-                 end_p,
+                 surface: pygame.Surface,
+                 start_p: Callable[[int, int], tuple[int, int]],
+                 end_p: Callable[[int, int], tuple[int, int]],
                  dim,
                  color_front,
                  color_back,
@@ -115,9 +115,9 @@ class ScrollBar(pygame.sprite.Sprite):
         Scroll bar is currently composed of a background rect and a slider which can be moved by scrolling
 
         :param surface: where the scroll bar will be drawn on
-        :param start_p: The starting position of the background rect is (the minimum horizontal/vertical position of the
+        :param start_p_func (): A function to calculate the starting position of the background rect (the minimum horizontal/vertical position of the
         scroll bar)
-        :param end_p: Similar to start_p but the end position instead
+        :param end_p_func: Similar to start_p but the end position instead
         :param dim: Dimension of the slider
         :param color_front: Color of the slider
         :param color_back: Color of the background rect
@@ -135,6 +135,16 @@ class ScrollBar(pygame.sprite.Sprite):
                                                       self.end_pos[1] - self.start_pos[1]])
         self.step_size = None
         self.set_pos(self.pos)
+    
+    @property
+    def percentage(self):
+        if self.orientation == 'vertical':
+            percentage = (self.back_rect.top - self.rect.top) / \
+                         (self.back_rect.height - self.rect.height)
+        else:
+            percentage = (self.rect.left - self.back_rect.left ) / \
+                         (self.back_rect.width - self.rect.width)
+        return percentage
 
     def update(self, *args, move=None, screen_change=False, args_c=None) -> None | float | int:
         if move is not None:
@@ -180,6 +190,12 @@ class ScrollBar(pygame.sprite.Sprite):
         if self.step_size:
             return (self.rect.topleft[index] - self.start_pos[index]) / self.step_size
 
+    def set_percentage(self, percent):
+        if self.orientation == 'vertical':
+            self.set_pos((self.back_rect.top - self.rect.top) * percent + self.rect.top)
+        else:
+            self.set_pos((self.rect.left - self.back_rect.left ) * percent + self.back_rect.left, AlignmentTypes.r)
+    
     def set_pos(self,
                 pos: list | tuple | int | float,
                 alignment: AlignmentTypes = None) -> None:

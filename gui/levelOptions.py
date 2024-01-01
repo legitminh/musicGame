@@ -2,8 +2,8 @@
 This file handels displaying the level options screen.
 """
 import pygame
-from interfaces import *
-from UI import Button
+from .interfaces import *
+from .UI import Button
 from .screen import Screen
 from constants import *
 

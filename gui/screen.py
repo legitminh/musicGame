@@ -1,5 +1,5 @@
 import pygame
-from interfaces import ScreenID, ExitException
+from .interfaces import ScreenID, ExitException
 from typing import Callable
 from abc import abstractmethod
 from constants import FRAME_RATE

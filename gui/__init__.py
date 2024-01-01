@@ -1,5 +1,5 @@
-from UI import *
-from interfaces import *
+from .UI import *
+from .interfaces import *
 from .intro import *
 from .level import *
 from .levelOptions import *

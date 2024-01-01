@@ -2,19 +2,20 @@
 This file handels displaying the level screen.
 
 TODO: incorporate more note numbers
+TODO: fix the hold error
 TODO: responsive system
     - Change column color/note color
 """
 
 
 import pygame
-from interfaces import *
+from .interfaces import *
 from utility.readMachineNotes import midi_note_extractor
-from UI import make_text, draw_rect_alpha
+from .UI import make_text, draw_rect_alpha
 from .screen import Screen
 from constants import *
 from typing import Any
-from screens.note import Note, NoteGroup
+from gui.note import NoteGroup
 
 
 BUCKET_NUMBER_INDEX = 0
@@ -36,8 +37,7 @@ class Level(Screen):
         pygame.K_TAB, pygame.K_q, pygame.K_w, pygame.K_e, pygame.K_r, pygame.K_t, pygame.K_y, pygame.K_u, pygame.K_i, pygame.K_o, pygame.K_p, pygame.K_LEFTBRACKET,
         pygame.K_CAPSLOCK, pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_f, pygame.K_g, pygame.K_h, pygame.K_j, pygame.K_k, pygame.K_l, pygame.K_SEMICOLON, pygame.K_QUOTE,
         pygame.K_LSHIFT, pygame.K_z, pygame.K_x, pygame.K_c, pygame.K_v, pygame.K_b, pygame.K_n, pygame.K_m, pygame.K_COMMA, pygame.K_PERIOD, pygame.K_SLASH, pygame.K_RSHIFT,
-        # pygame.K_
-        # pygame.K_NUMLOCK, pygame.K_KP_DIVIDE, 
+        pygame.K_EQUALS, pygame.K_RIGHTBRACKET, pygame.K_BACKSPACE, pygame.K_BACKSLASH, pygame.K_SPACE, pygame.K_LEFT, pygame.K_UP, pygame.K_DOWN, pygame.K_RIGHT, pygame.K_KP_DIVIDE, pygame.K_KP_MULTIPLY, pygame.K_KP_MINUS
     ]
     # the names of the buckets
     bucket_name_order = [
@@ -45,7 +45,7 @@ class Level(Screen):
         "Tb",*"qwertyuiop[",
         "Cp",*"asdfghjkl;'",
         "Ls",*"zxcvbnm,./","Rs",
-        "#"
+        *"=]", "Bs", "\\", "Sp", "<-", "^|", "v|", "->", "P/", "P*", "P-"
     ]
     dt = 0
 
