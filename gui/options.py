@@ -15,7 +15,8 @@ class Options(Screen):
     """
     This class handels displaying the options screen and player interaction.    
     """
-    mouse_down = False
+    s_mouse_down = False
+    v_mouse_down = False
 
     def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs) -> None:
         """
@@ -24,8 +25,9 @@ class Options(Screen):
         Args:
             screen (pygame.Surface): The surface that the level object will draw itself on.
             clock (pygame.time.Clock): The clock which will be used to set the maximum fps.
-            **kwargs (Any): Any other arguments, will ignore all values other than `volume`.
+            **kwargs (Any): Any other arguments, will ignore all values other than `volume` and `velocity`.
                 volume (float): The volume diplayed on the scroll bar.
+                velocity (float): The velocity diplayed on the scroll bar.
         
         Returns:
             None
@@ -33,9 +35,9 @@ class Options(Screen):
         Raises:
             ValueError: If `volume` is not included `kwargs`.
         """
-        
+        print(kwargs)
         tmp = kwargs.copy()
-        arguments = {'volume': float}
+        arguments = {'volume': float, 'velocity': float}
         for kwarg in kwargs:
             if kwarg not in arguments:
                 tmp.pop(kwarg)
@@ -49,14 +51,16 @@ class Options(Screen):
         self.user_interfaces = [
             Button(self.screen, [self.screen.get_width() / 2, 50], None, 'Options', 50),
             Button(self.screen, [self.screen.get_width() / 2, 125], None, 'Volume', 30),
-            Button(self.screen, [self.screen.get_width() / 2, 200], None, 'Velocity', 30)
+            Button(self.screen, [self.screen.get_width() / 2, 225], None, 'Velocity', 30)
         ]
         self.others = pygame.sprite.Group(self.user_interfaces)
         self.sound_slider = ScrollBar(self.screen, [25, 160], [self.screen.get_width() - 25, 180], [50, 20], 'black', 'dark gray',
                                 orientation='horizontal', start_pos=[25 + (self.volume * (self.screen.get_width() - 50 - 50)), 160])
-        self.velocity_slider = ScrollBar(self.screen, [25, 235], [self.screen.get_width() - 25, 255], [50, 20], 'black', 'dark gray',
-                                orientation='horizontal', start_pos=[25 + (self.volume * (self.screen.get_width() - 50 - 50)), 235])
-        self.sliders = pygame.sprite.Group([self.sound_slider, self.velocity_slider])
+        self.velocity_slider = ScrollBar(self.screen, [25, 260], [self.screen.get_width() - 25, 280], [50, 20], 'black', 'dark gray',
+                                orientation='horizontal', start_pos=[25 + (self.velocity * (self.screen.get_width() - 50 - 50)), 260])
+        self.sliders = pygame.sprite.Group()
+        self.sliders.add(self.sound_slider)
+        self.sliders.add(self.velocity_slider)
 
     def loop(self) -> None:
         """
@@ -73,15 +77,18 @@ class Options(Screen):
                 if event.type == pygame.QUIT:
                     raise ExitException()
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    return Redirect(ScreenID.intro, volume=self.volume)
+                    return Redirect(ScreenID.intro, volume=self.volume, velocity=self.velocity)
                 elif event.type == pygame.VIDEORESIZE:
                     self._video_resize()
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     self._left_click()
                 elif event.type == pygame.MOUSEBUTTONUP:
-                    self.mouse_down = False
-            if self.mouse_down:
+                    self.s_mouse_down = False
+                    self.v_mouse_down = False
+            if self.s_mouse_down:
                 self.sound_slider.click_drag(pygame.mouse.get_pos())
+            if self.v_mouse_down:
+                self.velocity_slider.click_drag(pygame.mouse.get_pos())
             self._draw()
 
     def _draw(self) -> None:
@@ -93,7 +100,9 @@ class Options(Screen):
         """
         self.screen.fill('light gray')
         self.volume = self.sound_slider.percentage
-        self.sliders.update(f'{int(self.volume * 100)}%', args_c='white')
+        self.velocity = self.velocity_slider.percentage
+        self.sound_slider.update(f'{int(self.volume * 100)}%', args_c='white')
+        self.velocity_slider.update(f'{100 + int(self.velocity * 1400)}', args_c='white')
         self.others.draw(self.screen)
         self.others.update()
         self.clock.tick(FRAME_RATE)
@@ -110,6 +119,11 @@ class Options(Screen):
         self.sound_slider.update(screen_change=True)
         leng = self.sound_slider.end_pos[0] - self.sound_slider.start_pos[0] - self.sound_slider.rect.width
         self.sound_slider.rect.topleft = self.sound_slider.start_pos[0] + (self.volume * leng), 160
+
+        self.velocity_slider.end_pos = self.screen.get_width() - 25, 280
+        self.velocity_slider.update(screen_change=True)
+        leng = self.velocity_slider.end_pos[0] - self.velocity_slider.start_pos[0] - self.velocity_slider.rect.width
+        self.velocity_slider.rect.topleft = self.velocity_slider.start_pos[0] + (self.volume * leng), 260
         for sprite in self.user_interfaces:
             L = list(sprite.rect.center)
             L[0] = self.screen.get_width() / 2
@@ -125,4 +139,7 @@ class Options(Screen):
         clicked_pos = pygame.mouse.get_pos()
         if self.sound_slider.back_rect.collidepoint(clicked_pos):
             self.sound_slider.click_drag(clicked_pos)
-            self.mouse_down = True
+            self.s_mouse_down = True
+        if self.velocity_slider.back_rect.collidepoint(clicked_pos):
+            self.velocity_slider.click_drag(clicked_pos)
+            self.v_mouse_down = True

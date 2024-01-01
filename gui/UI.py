@@ -133,6 +133,7 @@ class ScrollBar(pygame.sprite.Sprite):
         self.pos = start_pos if start_pos is not None else start_p
         self.back_rect = pygame.Rect(self.start_pos, [self.end_pos[0] - self.start_pos[0],
                                                       self.end_pos[1] - self.start_pos[1]])
+        self.group = pygame.sprite.Group(self)
         self.step_size = None
         self.set_pos(self.pos)
     
@@ -160,7 +161,7 @@ class ScrollBar(pygame.sprite.Sprite):
             self.back_rect = pygame.Rect(self.start_pos, [self.end_pos[0] - self.start_pos[0],
                                                           self.end_pos[1] - self.start_pos[1]])
         pygame.draw.rect(self.surface, self.back_color, self.back_rect)
-        self.groups()[0].draw(self.surface)
+        self.group.draw(self.surface)
         for thing in args:
             text = pygame.font.Font('Assets/Fonts/Roboto-Light.ttf', 20).render(str(thing), True, args_c)
             self.surface.blit(text, text.get_rect(center=(self.rect.centerx, self.rect.centery)))

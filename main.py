@@ -4,7 +4,7 @@ This file handels entering and exiting from the program.
 TODO: convert mp3/wav to machine notes.
 TODO: provide more support for resizing the screen.
 """
-
+import json
 import pygame
 from gui.screen import Screen
 from gui.intro import Intro
@@ -29,11 +29,13 @@ screen.fill('dark gray')
 
 # Game-wide critical variables
 clock = pygame.time.Clock()
-volume = .2  # TODO: store volume inside of player data
-high_scores: dict[str, float] = {}
+high_scores: dict[str, float]
+volume: float
+velocity: float
 
 
 def main():
+    global high_scores, volume, velocity
     """Handels screen redirects and stores the player's scores"""
     redirect: Redirect = Redirect(ScreenID.intro)
     conversion_table: dict[ScreenID, Screen] = {
@@ -44,35 +46,42 @@ def main():
         ScreenID.level:        Level,        # Kwargs: volume, song_id, slowdown
         ScreenID.outro:        Outro,        # Kwargs: song_id, score, slowdown, high_scores
     }
-    stored_kwargs = {'volume': volume, 'high_scores': high_scores}
-
-    file_reader()
+    json_reader()
+    stored_kwargs = {'volume': volume, 'high_scores': high_scores, 'velocity': velocity}
     while True:
         try:
             obj: Screen = conversion_table[redirect.redirect_screen](screen, clock, **stored_kwargs)
             redirect = obj.loop()
             stored_kwargs.update(redirect.params)
         except ExitException:
-            file_writer()
+            volume = stored_kwargs['volume']
+            velocity = stored_kwargs['velocity']
+            json_writer()
             pygame.quit()
             exit()
 
 
-def file_writer() -> None: 
-    """Saves high scores into the `PlayerData` file."""
-    with open('PlayerData', mode='w') as f:
-        write = ''
-        for level_n, percent in high_scores.items():
-            write += f'{level_n},{percent}\n'
-        f.write(write)
+def json_writer():
+    dictionary = {
+        "playerHighScores": high_scores,
+        "volume": volume,
+        "velocity": velocity,
+    }
+    # Serializing json
+    json_object = json.dumps(dictionary, indent=4)
+    with open("playerData.json", "w") as outfile:
+        outfile.write(json_object)
 
 
-def file_reader() -> None:
-    """Reads high scores from the `PlayerData` file."""
-    global high_scores
-    with open('PlayerData', mode='r') as f:
-        for line in f.read().strip().split():
-            high_scores[line.split(',')[0]] = float(line.split(',')[1])
+def json_reader():
+    global high_scores, volume, velocity
+    with open('playerData.json', 'r') as openfile:
+ 
+    # Reading from json file
+        json_object = json.load(openfile)
+        high_scores = json_object["playerHighScores"]
+        volume = json_object["volume"]
+        velocity = json_object["velocity"]
 
 
 if __name__ == "__main__":

@@ -1,4 +1,6 @@
 """
+TODO: fix midi processing bug where notes are seemingly just deleted randomly
+
 `1234567890-=
 qwertyuiop[]\
 asdfghjkl;'
@@ -48,7 +50,7 @@ def process_file(file_name: str) -> None:
 
     VELOCITY = get_velocity(mid)
 
-    notes: list[instruction] = get_note_instructions(mid, VELOCITY)
+    notes: list[instruction] = get_note_instructions(mid)
     compressed_notes = linear_compression(notes)
     overlap = get_overlap(compressed_notes)
     cutting_points = sorted(get_cutting_points(overlap))
@@ -88,7 +90,7 @@ def combine_buckets(compressed_notes, cutting_points):
     return new_notes
 
 
-def get_note_instructions(mid, velocity):
+def get_note_instructions(mid):
     curTime = 0
     notesStatus = {i : 0 for i in range(88)}
     notes = []
@@ -101,10 +103,8 @@ def get_note_instructions(mid, velocity):
             notesStatus[msg.note] = curTime
         elif msg.type == "note_off" or (msg.type == "note_on" and msg.velocity == 0):
             time_till_note = notesStatus[msg.note]
-            dist_till_note = time_till_note * velocity
 
             note_len_sec = curTime - notesStatus[msg.note]
-            note_len_px = velocity * note_len_sec
 
             if note_len_sec < MIN_NOTE_LEN_MS / 1000:
                 removed += 1
@@ -112,8 +112,8 @@ def get_note_instructions(mid, velocity):
 
             notes.append([
                 msg.note,
-                round(note_len_px, 3),
-                round(dist_till_note, 3),
+                round(note_len_sec, 3),
+                round(time_till_note, 3),
                 ])
     # print("# of removed notes (too short):", removed)
     return notes
@@ -141,7 +141,7 @@ def linear_compression(notes):
 
 def get_overlap(notes) -> dict[tuple[int, int], int]:
     """
-    Get the list of two notes that are overlapping with one another
+    Get the dictionary of pair of notes that are overlapping with one another (the pair is always ascending)
     """
     overlaps = []
     note_on = {i[0]: -1 for i in notes}
@@ -208,7 +208,5 @@ def get_velocity(mid):
 
 
 for file_name in listdir(INPUT_DIR):
-    if file_name.endswith(".midi"):
-        file_name.replace(".midi", ".mid")
-    if file_name.endswith(".mid"):
+    if file_name.endswith(".mid") or file_name.endswith(".midi"):
         process_file(file_name)

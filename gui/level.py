@@ -65,8 +65,9 @@ class Level(Screen):
         Args:
             screen (pygame.Surface): The surface that the level object will draw itself on.
             clock (pygame.time.Clock): The clock which will be used to set the maximum fps.
-            **kwargs (Any): Any other arguments, will ignore all values other than `volume`, `song_id`, `extreme`, and `slowdown`.
-                volume (float): The volume the songs will be played at.
+            **kwargs (Any): Any other arguments, will ignore all values other than `volume`, `velocity`, `song_id`, `extreme`, and `slowdown`.
+                volume (float): The volume the song will be played at.
+                velocity (float): The velocity the song will be played at.
                 song_id (int): The id of the song that will be played. 
                 extreme (bool): If the level will be the "extreme" varient.
                 slowdown (int | float): The amount the song will be slow downed 
@@ -76,10 +77,10 @@ class Level(Screen):
             None
         
         Raises:
-            ValueError: If `volume`, `song_id`, `extreme`, or `slowdown` are not included in `kwargs`.
+            ValueError: If `volume`, `velocity`, `song_id`, `extreme`, or `slowdown` are not included in `kwargs`.
         """
         tmp = kwargs.copy()
-        arguments = {'volume': float, 'song_id': int, 'extreme': bool, 'slowdown': int | float}
+        arguments = {'volume': float, 'velocity': float, 'song_id': int, 'extreme': bool, 'slowdown': int | float}
         for kwarg in kwargs:
             if kwarg not in arguments:
                 tmp.pop(kwarg)
@@ -133,7 +134,8 @@ class Level(Screen):
             None
         """
         self.notes: NoteGroup
-        self.velocity, self.notes = midi_note_extractor(self.song_id, self.slowdown, self.extreme)
+        self.velocity = 100 + 1400 * self.velocity
+        _, self.notes = midi_note_extractor(self.song_id, self.slowdown, self.extreme, self.velocity)
 
     def _all_note_cycle(self) -> None:  # note GFX
         """
