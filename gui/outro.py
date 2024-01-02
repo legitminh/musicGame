@@ -22,8 +22,9 @@ class Outro(Screen):
         Args:
             screen (pygame.Surface): The surface that the level object will draw itself on.
             clock (pygame.time.Clock): The clock which will be used to set the maximum fps.
-            **kwargs (Any): Any other arguments, will ignore all values other than `song_id`, `score`, `slowdown`, and `high_scores`.
+            **kwargs (Any): Any other arguments, will ignore all values other than `song_id`, `extreme`, `score`, `slowdown`, and `high_scores`.
                 song_id (int): The id of the song that will be played.
+                extreme (bool): If the song is extreme.
                 score (float): The score of the player.
                 slowdown (int | float): The amount the song will be slow downed 
                     (will run the pre-slow-downed version of the song located in the "ProcessedMusics" directory)
@@ -33,10 +34,10 @@ class Outro(Screen):
             None
 
         Raises:
-            ValueError: If `song_id`, `score`, `slowdown`, or `high_scores` are not in `kwargs`.
+            ValueError: If `song_id`, `extreme`, `score`, `slowdown`, or `high_scores` are not in `kwargs`.
         """
         tmp = kwargs.copy()
-        arguments = {'song_id': int, 'score': float, 'slowdown': int | float, 'high_scores': dict}
+        arguments = {'song_id': int, 'extreme': bool, 'score': float, 'slowdown': int | float, 'high_scores': dict}
         for kwarg in kwargs:
             if kwarg not in arguments:
                 tmp.pop(kwarg)
@@ -81,10 +82,7 @@ class Outro(Screen):
             None
         """
         self.outro_g = pygame.sprite.Group()
-        if isinstance(self.song_id, str):
-            directory = SONG_PATHS[int(self.song_id.replace('e', '').replace('p', ''))]
-        else:
-            directory = SONG_PATHS[self.song_id]
+        directory = SONG_PATHS[self.song_id]
         
         self.outro_l = [Button(self.screen, [self.screen.get_width() / 2, self.screen.get_height() // 2 + 50], self.song_id, 'Play again', 30),
                 Button(self.screen, [self.screen.get_width() / 2, self.screen.get_height() // 2 - 50], '',
@@ -132,8 +130,8 @@ class Outro(Screen):
         """
         if self.slowdown < 1:
             return 
-        if str(self.song_id) not in self.high_scores:
-            self.high_scores[str(self.song_id)] = self.score
+        if self.extreme and (str(self.song_id) + 'e' not in self.high_scores or self.score > self.high_scores[str(self.song_id) + 'e']):
+            self.high_scores[str(self.song_id) + 'e'] = self.score
             return
-        if self.score > self.high_scores[str(self.song_id)]:
+        if str(self.song_id) not in self.high_scores or self.score > self.high_scores[str(self.song_id)]:
             self.high_scores[str(self.song_id)] = self.score
