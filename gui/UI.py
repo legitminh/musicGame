@@ -250,7 +250,7 @@ def draw_rect_alpha(surface, color, rect, width=4, border_radius=5):
         surface.blit(shape_surf, rect)
 
 
-def make_text(screen, x, y, what, t_size=29, color='blue'):
+def make_text(screen, x, y, what, t_size=16, color='blue'):
     if y > -1:
         text = pygame.font.Font('Assets/Fonts/Roboto-Light.ttf', t_size).render(str(what), True, color)
         screen.blit(text, text.get_rect(center=(x, y)))
