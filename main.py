@@ -25,8 +25,6 @@ pygame.display.set_caption("Typing piano")
 img = pygame.image.load('Assets/Images/Checkered pattern.png')
 pygame.display.set_icon(img)
 
-screen.fill('dark gray')
-
 # Game-wide critical variables
 clock = pygame.time.Clock()
 high_scores: dict[str, float]

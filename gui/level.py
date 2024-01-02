@@ -196,11 +196,13 @@ class Level(Screen):
             self.total_hits += 1
             self.notes.pop(0)
 
-    def _draw_bucket_bg(self) -> None:
-        
+    def _draw_back_ground(self) -> None:
+        """
+        Draws the back ground of the level screen.        
+        """
         for i in range(self.notes.num_buckets):
             bucket_width = self.screen.get_width() / self.notes.num_buckets
-            draw_rect_alpha(self.screen, ('darkgray' if (i//4)%2 else 'gray'), [i*bucket_width , 0, (i+1)*bucket_width, self.screen.get_width() * LINE_LEVEL], 0)
+            draw_rect_alpha(self.screen, (ALT_COLOR if (i // 4) % 2 else BACK_GROUND_COLOR), [i*bucket_width , 0, (i+1)*bucket_width, self.screen.get_width() * LINE_LEVEL], 0)
         
     def _draw(self) -> None:
         """
@@ -210,12 +212,12 @@ class Level(Screen):
             None
         """
         line_px_level = int(self.screen.get_height() * LINE_LEVEL)
-        self.screen.fill('gray')
+        self._draw_back_ground()
             
         self._all_note_cycle()
         self._draw_key_names()
         
-        pygame.draw.line(self.screen, 'black', (0, line_px_level), (self.screen.get_width(), line_px_level))
+        pygame.draw.line(self.screen, LINE_COLOR, (0, line_px_level), (self.screen.get_width(), line_px_level))
         try:
             make_text(self.screen, self.screen.get_width() / 2, 20, round(self.correct_hits / self.total_hits * 100, 2))
         except ZeroDivisionError:

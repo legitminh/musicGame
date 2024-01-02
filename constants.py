@@ -14,10 +14,14 @@ SONG_PATHS = {
 
 LENIENCY = 0.5  # seconds
 LINE_LEVEL = 0.8
+LINE_COLOR = 'black'
 
 NOTE_COLOR = 'black'
 FILL_COLOR = 'dark gray'
 FILL_COMPLETE_COLOR = 'light green'
+
+BACK_GROUND_COLOR = 'gray'
+ALT_COLOR = 'dark gray'
 
 # required amount of stars for each level
 REQUIREMENTS = {
