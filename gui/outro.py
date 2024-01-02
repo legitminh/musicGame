@@ -99,7 +99,7 @@ class Outro(Screen):
         Returns:
             None
         """
-        self.screen.fill('light gray')
+        self.screen.fill(BACKGROUND_COLOR)
         self.outro_g.draw(self.screen)
         self.outro_g.update()
         pygame.display.update()

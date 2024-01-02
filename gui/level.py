@@ -202,7 +202,7 @@ class Level(Screen):
         """
         for i in range(self.notes.num_buckets):
             bucket_width = self.screen.get_width() / self.notes.num_buckets
-            draw_rect_alpha(self.screen, (ALT_COLOR if (i // 4) % 2 else BACK_GROUND_COLOR), [i*bucket_width , 0, (i+1)*bucket_width, self.screen.get_width() * LINE_LEVEL], 0)
+            draw_rect_alpha(self.screen, (ALT_COLOR if (i // ALT_PERIOD) % 2 else BACKGROUND_COLOR), [i*bucket_width , 0, (i+1)*bucket_width, self.screen.get_width() * LINE_LEVEL], 0)
         
     def _draw(self) -> None:
         """

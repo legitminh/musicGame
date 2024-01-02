@@ -108,7 +108,7 @@ class LevelOptions(Screen):
         Returns:
             None
         """
-        self.screen.fill('light gray')
+        self.screen.fill(BACKGROUND_COLOR)
         self.modes_g.draw(self.screen)
         self.modes_g.update()
         if self.song_id not in self.high_scores or self.high_scores[self.song_id] != 100:

@@ -223,7 +223,7 @@ class Menu(Screen):
         Returns:
             None
         """
-        self.screen.fill('light gray')
+        self.screen.fill(BACKGROUND_COLOR)
         height = self.screen.get_height()
         to_draw = pygame.sprite.Group()
         for sprite in self.level_select_g.sprites() + self.high_score_g.sprites() + self.stars_g.sprites() + self.lock_g.sprites():
@@ -231,7 +231,7 @@ class Menu(Screen):
                 to_draw.add(sprite)
         to_draw.draw(self.screen)
         to_draw.update()
-        pygame.draw.rect(self.screen, 'light gray', (0, 0, self.screen.get_width(), 95))
+        pygame.draw.rect(self.screen, BACKGROUND_COLOR, (0, 0, self.screen.get_width(), 95))
         self.misc_g.draw(self.screen)
         self.misc_g.update()
         if self.total_items_len > 0:

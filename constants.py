@@ -20,8 +20,9 @@ NOTE_COLOR = 'black'
 FILL_COLOR = 'dark gray'
 FILL_COMPLETE_COLOR = 'light green'
 
-BACK_GROUND_COLOR = 'gray'
+BACKGROUND_COLOR = 'gray'
 ALT_COLOR = 'dark gray'
+ALT_PERIOD = 4
 
 # required amount of stars for each level
 REQUIREMENTS = {

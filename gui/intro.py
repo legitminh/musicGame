@@ -71,7 +71,7 @@ class Intro(Screen):
         Returns:
             None
         """
-        self.screen.fill('light gray')
+        self.screen.fill(BACKGROUND_COLOR)
         self.clock.tick(FRAME_RATE)
         self.intro_g.draw(self.screen)
         self.intro_g.update()

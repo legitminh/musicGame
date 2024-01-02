@@ -97,7 +97,7 @@ class Options(Screen):
         Returns:
             None
         """
-        self.screen.fill('light gray')
+        self.screen.fill(BACKGROUND_COLOR)
         self.volume = self.sound_slider.percentage
         self.velocity = self.velocity_slider.percentage
         self.sound_slider.update(f'{int(self.volume * 100)}%', args_c='white')
