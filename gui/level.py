@@ -165,8 +165,10 @@ class Level(Screen):
         Returns:
             None
         """
+        alternate = True
         for bucket in range(self.notes.num_buckets):
-            make_text(self.screen, self.screen.get_width() / self.notes.num_buckets * (bucket + 0.5), self.screen.get_height() * .9, self.bucket_name_order[bucket])
+            make_text(self.screen, self.screen.get_width() / self.notes.num_buckets * (bucket + 0.5), self.screen.get_height() * .9 + (-8 if alternate else 8), self.bucket_name_order[bucket])
+            alternate = not alternate
     
     def _update_notes(self) -> Redirect | None:
         """
@@ -193,6 +195,12 @@ class Level(Screen):
                 break
             self.total_hits += 1
             self.notes.pop(0)
+
+    def _draw_bucket_bg(self) -> None:
+        
+        for i in range(self.notes.num_buckets):
+            bucket_width = self.screen.get_width() / self.notes.num_buckets
+            draw_rect_alpha(self.screen, ('darkgray' if (i//4)%2 else 'gray'), [i*bucket_width , 0, (i+1)*bucket_width, self.screen.get_width() * LINE_LEVEL], 0)
         
     def _draw(self) -> None:
         """
