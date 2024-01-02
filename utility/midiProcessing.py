@@ -1,6 +1,4 @@
 """
-TODO: fix midi processing bug where notes are seemingly just deleted randomly
-
 `1234567890-=
 qwertyuiop[]\
 asdfghjkl;'
@@ -45,7 +43,7 @@ def process_file(file_name: str) -> None:
     """
     Process a .mid or .midi file to a set of note instructions listed in a .csv with the file's name
     """
-    print(f"Processing {file_name}>>>")
+    print(f"Processing {file_name}:")
     mid = mido.MidiFile(INPUT_DIR + file_name)
 
     VELOCITY = get_velocity(mid)
@@ -112,10 +110,10 @@ def get_note_instructions(mid):
 
             notes.append([
                 msg.note,
-                round(note_len_sec, 3),
-                round(time_till_note, 3),
+                note_len_sec,
+                time_till_note
                 ])
-    # print("# of removed notes (too short):", removed)
+    print("# of removed notes (too short):", removed)
     return notes
 
 
@@ -147,7 +145,7 @@ def get_overlap(notes) -> dict[tuple[int, int], int]:
     note_on = {i[0]: -1 for i in notes}
     for i in notes:
         for j, loc in note_on.items():  # Edge case: i should not be on while j is on
-            if i[2] >= loc - 0.01:  # if i is played after j is finished, subtract 0.01 to ignore edge
+            if i[2] >= loc - 0.001:  # if i is played after j is finished, subtract 0.01 to ignore edge
                 continue
             a = min(i[0],j)
             b = max(i[0],j)
