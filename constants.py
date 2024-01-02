@@ -1,7 +1,16 @@
 FRAME_RATE = 50
 FONT_PATH = "Assets/Fonts/Roboto-Light.ttf"
-SONG_PATHS = {0: 'Musics/Hot Cross Buns.wav', 1: 'Musics/Twinkle Twinkle Little Star.wav', 2: 'Musics/Happy Birthday.wav',
-         3: 'Musics/Jingle Bells.wav', 4: 'Musics/Fur Elise.wav', 5: 'Musics/La Campanella.wav', 6: 'Musics/Rush E.wav'}
+SONG_PATHS = {
+    0: 'Musics/Hot Cross Buns.wav', 
+    1: 'Musics/Twinkle Twinkle Little Star.wav', 
+    2: 'Musics/Mary Had a Little Lamb.wav',
+    3: 'Musics/Happy Birthday.wav',
+    4: 'Musics/Jingle Bells.wav', 
+    5: "Musics/Canon in D Piano.wav", 
+    6: 'Musics/Fur Elise.wav', 
+    7: 'Musics/La Campanella.wav', 
+    8: 'Musics/Rush E.wav'
+}
 
 LENIENCY = 0.5  # seconds
 LINE_LEVEL = 0.8
