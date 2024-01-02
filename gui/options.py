@@ -35,7 +35,6 @@ class Options(Screen):
         Raises:
             ValueError: If `volume` is not included `kwargs`.
         """
-        print(kwargs)
         tmp = kwargs.copy()
         arguments = {'volume': float, 'velocity': float}
         for kwarg in kwargs:
