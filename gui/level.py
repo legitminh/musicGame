@@ -165,8 +165,10 @@ class Level(Screen):
         Returns:
             None
         """
+        alternate = True
         for bucket in range(self.notes.num_buckets):
-            make_text(self.screen, self.screen.get_width() / self.notes.num_buckets * (bucket + 0.5), self.screen.get_height() * .9, self.bucket_name_order[bucket])
+            make_text(self.screen, self.screen.get_width() / self.notes.num_buckets * (bucket + 0.5), self.screen.get_height() * .9 + (-8 if alternate else 8), self.bucket_name_order[bucket])
+            alternate = not alternate
     
     def _update_notes(self) -> Redirect | None:
         """
