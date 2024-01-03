@@ -25,7 +25,6 @@ FILL_COMPLETE_COLOR = 'light green'
 
 BACKGROUND_COLOR = 'gray'
 ALT_COLOR = 'dark gray'
-ALT_PERIOD = 4
 
 # required amount of stars for each level
 REQUIREMENTS = {
