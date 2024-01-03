@@ -1,6 +1,10 @@
+""""
+TODO: investigate how the image corners may be cut off through pillow or another image library.
+"""
 from box import Box
 import pygame
 from .UI import UiElement
+
 
 class Image(UiElement):
     """An image drawn on top of a box."""

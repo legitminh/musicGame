@@ -1,21 +1,21 @@
+"""
+TODO: children and parrents
+"""
 from copy import copy
 import pygame
 from typing import Any, Callable, Union
 from abc import abstractmethod, ABC
 
 
-
-
 class UiElement(ABC):
-    is_selected: bool = True
+    is_selected: bool = False
     hidden: bool = False
-    stored_value = None
 
     def __init__(
             self,
             display_surface: pygame.surface.Surface,
             position_function: Callable[[int, int], tuple[int, int]],
-            size_function: Callable[[int, int], tuple[int, int]]
+            size_function: Callable[[int, int], tuple[int, int]],
     ) -> None:
         self.display_surface = display_surface
         self.display_size = display_surface.get_size()
@@ -34,11 +34,10 @@ class UiElement(ABC):
 
             self.position = self.position_function(*self.display_size)
             self.size = self.size_function(*self.display_size)
+            self.rect = pygame.rect.Rect(self.position, self.size)
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_LEFT:
             self.is_selected = self.is_hovered_over ^ self.is_selected & self.is_hovered_over
-
-        self.draw()
 
     def set_pos_func(self, pos_func: Callable[[int, int], tuple[int, int]]) -> 'UiElement':
         tmp = copy(self)
@@ -56,9 +55,6 @@ class UiElement(ABC):
 
     @abstractmethod
     def draw(self): ...
-
-    def store(self, value):
-        self.stored_value = value
 
     @staticmethod
     def is_attribute(attr) -> bool:
