@@ -1,8 +1,6 @@
 """
 This file handels displaying the level screen.
 
-TODO: incorporate more note numbers
-TODO: fix the hold error
 TODO: responsive system
     - Change column color/note color
 """
@@ -32,35 +30,7 @@ class Level(Screen):
     extreme = False
     # bucket_key_order = [pygame.K_f, pygame.K_j]
     # the order for which the buckets are created, the first bucket will have an input key of "`", the second bucket will have an input key of "1", and so on.
-    bucket_display_order = [
-        # pygame.K_BACKQUOTE, pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9, pygame.K_0, pygame.K_MINUS,
-        *[96, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 45],
-        # pygame.K_TAB, pygame.K_q, pygame.K_w, pygame.K_e, pygame.K_r, pygame.K_t, pygame.K_y, pygame.K_u, pygame.K_i, pygame.K_o, pygame.K_p, pygame.K_LEFTBRACKET,
-        *[9, 113, 119, 101, 114, 116, 121, 117, 105, 111, 112, 91],
-        # pygame.K_CAPSLOCK, pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_f, pygame.K_g, pygame.K_h, pygame.K_j, pygame.K_k, pygame.K_l, pygame.K_SEMICOLON, pygame.K_QUOTE,
-        *[1073741881, 97, 115, 100, 102, 103, 104, 106, 107, 108, 59, 39],
-        pygame.K_LSHIFT, pygame.K_z, pygame.K_x, pygame.K_c, pygame.K_v, pygame.K_b, pygame.K_n, pygame.K_m, pygame.K_COMMA, pygame.K_PERIOD, pygame.K_SLASH, pygame.K_RSHIFT,
-
-        # pygame.K_EQUALS, pygame.K_RIGHTBRACKET, pygame.K_BACKSPACE, pygame.K_BACKSLASH, pygame.K_SPACE, pygame.K_LEFT, pygame.K_UP, pygame.K_DOWN, pygame.K_RIGHT, pygame.K_KP_DIVIDE, pygame.K_KP_MULTIPLY, pygame.K_KP_MINUS,
-        pygame.K_F1, pygame.K_F2,pygame.K_F3,pygame.K_F4,pygame.K_F5,pygame.K_F6,pygame.K_F7,pygame.K_F8,pygame.K_F9,pygame.K_F10,pygame.K_F11,pygame.K_F12,
-        pygame.K_PRINTSCREEN, pygame.K_SCROLLLOCK, pygame.K_PAUSE, pygame.K_INSERT, pygame.K_HOME, pygame.K_PAGEUP, pygame.K_DELETE, pygame.K_END, pygame.K_PAGEDOWN, pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT,
-        pygame.K_NUMLOCK, pygame.K_KP_DIVIDE, pygame.K_KP_MULTIPLY, pygame.K_KP_7,  pygame.K_KP_8,  pygame.K_KP_9,  pygame.K_KP_4,  pygame.K_KP_5,  pygame.K_KP_6,  pygame.K_KP_1,  pygame.K_KP_2,  pygame.K_KP_3,
-        # pygame.K_LCTRL, pygame.K_
-        *[1073742048, 1073742051, 1073742050, 32, 1073742054, 1073741925, 1073742052, 1073741922, 1073741923, 1073741912, 1073741911, 1073741910]
-    ]
-    # the names of the buckets
-    bucket_name_order = [
-        *"`1234567890-",
-        "Tb",*"qwertyuiop[",
-        "Cp",*"asdfghjkl;'",
-        "Ls",*"zxcvbnm,./","Rs",
-        # *"=]", "Bs", "\\", "Sp", "<-", "^|", "v|", "->", "P/", "P*", "P-",
-        "F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12",
-        "Ps","Sl","Pa","In","Ho","PgU","Del","End","PgD","<-","v|","->",
-        "Nl","N/","N*","N7","N8","N9","N4","N5","N6","N1","N2","N3",
-        "Lc","Lwi","Lal","Spc","Ral","Men","Rc","N0","N.","Nen","N+","N-"
-        
-    ]
+    
     dt = 0
 
     correct_hits = 0
@@ -202,7 +172,8 @@ class Level(Screen):
         """
         for i in range(self.notes.num_buckets):
             bucket_width = self.screen.get_width() / self.notes.num_buckets
-            draw_rect_alpha(self.screen, (ALT_COLOR if (i // ALT_PERIOD) % 2 else BACKGROUND_COLOR), [i*bucket_width , 0, (i+1)*bucket_width, self.screen.get_width() * LINE_LEVEL], 0)
+            mod = 2 if self.notes.num_buckets < 12 else 4
+            draw_rect_alpha(self.screen, (ALT_COLOR if (i // ALT_PERIOD) % mod else BACKGROUND_COLOR), [i*bucket_width , 0, (i+1)*bucket_width, self.screen.get_width() * LINE_LEVEL], 0)
         
     def _draw(self) -> None:
         """

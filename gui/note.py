@@ -51,7 +51,7 @@ class Note:
                 ), width=0,
             )
         draw_rect_alpha(
-            screen, "green" if 0 > self.dist_from_bottom >= -.5 * 150 else 'red', (  # every bucket is in one row
+            screen, NOTE_COLOR, (  # every bucket is in one row
             self.bucket_number * bucket_size, 
             screen.get_height() * LINE_LEVEL - self.dist_from_bottom - self.note_duration,
             bucket_size, self.note_duration,

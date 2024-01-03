@@ -30,6 +30,7 @@ clock = pygame.time.Clock()
 high_scores: dict[str, float]
 volume: float
 velocity: float
+bucket_settings: dict[int, str]
 
 
 def main():
@@ -45,6 +46,7 @@ def main():
         ScreenID.outro:        Outro,        # Kwargs: song_id, score, slowdown, high_scores
     }
     json_reader()
+    print(bucket_settings)
     stored_kwargs = {'volume': volume, 'high_scores': high_scores, 'velocity': velocity}
     while True:
         try:
@@ -64,6 +66,7 @@ def json_writer():
         "playerHighScores": high_scores,
         "volume": volume,
         "velocity": velocity,
+        "bucketSettings" : bucket_settings,
     }
     # Serializing json
     json_object = json.dumps(dictionary, indent=4)
@@ -72,7 +75,7 @@ def json_writer():
 
 
 def json_reader():
-    global high_scores, volume, velocity
+    global high_scores, volume, velocity, bucket_settings
     with open('playerData.json', 'r') as openfile:
  
     # Reading from json file
@@ -80,6 +83,7 @@ def json_reader():
         high_scores = json_object["playerHighScores"]
         volume = json_object["volume"]
         velocity = json_object["velocity"]
+        bucket_settings = json_object["velocity"]
 
 
 if __name__ == "__main__":

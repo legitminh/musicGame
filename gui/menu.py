@@ -1,5 +1,7 @@
 """
 This file handels displaying the menu screen.
+
+TODO: decrease load time
 """
 
 
