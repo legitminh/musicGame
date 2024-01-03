@@ -15,7 +15,6 @@ from constants import *
 from typing import Any
 from gui.note import NoteGroup
 
-
 BUCKET_NUMBER_INDEX = 0
 DURATION_INDEX = 1
 DIST_FROM_BOTOM_INDEX = 2
@@ -46,22 +45,23 @@ class Level(Screen):
         Args:
             screen (pygame.Surface): The surface that the level object will draw itself on.
             clock (pygame.time.Clock): The clock which will be used to set the maximum fps.
-            **kwargs (Any): Any other arguments, will ignore all values other than `volume`, `velocity`, `song_id`, `extreme`, and `slowdown`.
+            **kwargs (Any): Any other arguments, will ignore all values other than `volume`, `velocity`, `song_id`, `extreme`, `slowdown`, and `bucket_settings`.
                 volume (float): The volume the song will be played at.
                 velocity (float): The velocity the song will be played at.
                 song_id (int): The id of the song that will be played. 
                 extreme (bool): If the level will be the "extreme" varient.
                 slowdown (int | float): The amount the song will be slow downed 
-                    (will run the pre-slow-downed version of the song located in the "ProcessedMusics" directory)
+                    (will run the pre-slow-downed version of the song located in the "ProcessedMusics" directory).
+                bucket_settings (dict[int, str]): The key id and key name associated with each bucket id.
         
         Returns: 
             None
         
         Raises:
-            ValueError: If `volume`, `velocity`, `song_id`, `extreme`, or `slowdown` are not included in `kwargs`.
+            ValueError: If `volume`, `velocity`, `song_id`, `extreme`, `slowdown`, or `bucket_settings` are not included in `kwargs`.
         """
         tmp = kwargs.copy()
-        arguments = {'volume': float, 'velocity': float, 'song_id': int, 'extreme': bool, 'slowdown': int | float}
+        arguments = {'volume': float, 'velocity': float, 'song_id': int, 'extreme': bool, 'slowdown': int | float, 'bucket_settings': list}
         for kwarg in kwargs:
             if kwarg not in arguments:
                 tmp.pop(kwarg)
@@ -137,7 +137,7 @@ class Level(Screen):
         """
         alternate = True
         for bucket in range(self.notes.num_buckets):
-            make_text(self.screen, self.screen.get_width() / self.notes.num_buckets * (bucket + 0.5), self.screen.get_height() * .9 + (-8 if alternate else 8), self.bucket_name_order[bucket])
+            make_text(self.screen, self.screen.get_width() / self.notes.num_buckets * (bucket + 0.5), self.screen.get_height() * .9 + (-8 if alternate else 8), self.bucket_settings[bucket][1])
             alternate = not alternate
     
     def _update_notes(self) -> Redirect | None:
@@ -172,8 +172,8 @@ class Level(Screen):
         """
         for i in range(self.notes.num_buckets):
             bucket_width = self.screen.get_width() / self.notes.num_buckets
-            mod = 2 if self.notes.num_buckets < 12 else 4
-            draw_rect_alpha(self.screen, (ALT_COLOR if (i // ALT_PERIOD) % mod else BACKGROUND_COLOR), [i*bucket_width , 0, (i+1)*bucket_width, self.screen.get_width() * LINE_LEVEL], 0)
+            ALT_PERIOD = 2 if self.notes.num_buckets < 12 else 4
+            draw_rect_alpha(self.screen, (ALT_COLOR if (i // ALT_PERIOD) % 2 else BACKGROUND_COLOR), [i*bucket_width , 0, (i+1)*bucket_width, self.screen.get_width() * LINE_LEVEL], 0)
         
     def _draw(self) -> None:
         """
@@ -237,8 +237,10 @@ class Level(Screen):
             int: A bucket id.
             None: If the key does not correspond to a bucket.
         """
-        if key in self.bucket_display_order:
-            return self.bucket_display_order.index(key)
+        for [i, j] in self.bucket_settings:
+            if j[0] == key:
+                return i
+        return None
     
     def _key_down(self, event) -> None:
         """

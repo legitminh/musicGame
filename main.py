@@ -30,11 +30,11 @@ clock = pygame.time.Clock()
 high_scores: dict[str, float]
 volume: float
 velocity: float
-bucket_settings: dict[int, str]
+bucket_settings: list[int, str]
 
 
 def main():
-    global high_scores, volume, velocity
+    global high_scores, volume, velocity, bucket_settings
     """Handels screen redirects and stores the player's scores"""
     redirect: Redirect = Redirect(ScreenID.intro)
     conversion_table: dict[ScreenID, Screen] = {
@@ -46,8 +46,8 @@ def main():
         ScreenID.outro:        Outro,        # Kwargs: song_id, score, slowdown, high_scores
     }
     json_reader()
-    print(bucket_settings)
-    stored_kwargs = {'volume': volume, 'high_scores': high_scores, 'velocity': velocity}
+    # print(bucket_settings)
+    stored_kwargs = {'volume': volume, 'high_scores': high_scores, 'velocity': velocity, "bucket_settings" : bucket_settings}
     while True:
         try:
             obj: Screen = conversion_table[redirect.redirect_screen](screen, clock, **stored_kwargs)
@@ -83,7 +83,7 @@ def json_reader():
         high_scores = json_object["playerHighScores"]
         volume = json_object["volume"]
         velocity = json_object["velocity"]
-        bucket_settings = json_object["velocity"]
+        bucket_settings = json_object["bucketSettings"]
 
 
 if __name__ == "__main__":
