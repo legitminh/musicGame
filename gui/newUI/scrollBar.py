@@ -7,9 +7,9 @@ A scroll bar which is composed of four boxes
 """
 
 
-from .UI import UiElement
-from .box import Box
-from .textBox import TextBox
+from UI import UiElement, UiElementGroup
+from box import Box
+from textBox import TextBox
 import pygame
 from enum import Enum
 
@@ -24,13 +24,23 @@ class Orientation(Enum):
 
 
 class ScrollBar(UiElement):
-    SCROLL_AMOUNT = 10
     is_being_dragged = False
 
-    def __init__(self, background_box: Box, foreground_box: TextBox, display_percentage: bool = False) -> None:
+    def __init__(
+            self, 
+            background_box: Box, 
+            foreground_box: TextBox, 
+            effected_group: UiElementGroup,
+            display_area: float,
+            display_percentage: bool = False
+        ) -> None:
         super().__init__(background_box.display_surface, background_box.position_function, background_box.size_function)
 
-        self.rect = foreground_box.rect
+        self.rect = background_box.rect
+        self.effected_group = effected_group
+        self.display_area = display_area
+
+        self.scroll_amount = self.effected_group.height / self.display_area
 
         self.background_box = background_box
         if background_box.rect.width > background_box.rect.height:
@@ -45,7 +55,10 @@ class ScrollBar(UiElement):
         self.drag_foreground_box(event)
 
         self.background_box.update(event)
+        if self.background_box.rect is not self.rect:
+            self.rect = self.background_box.rect
         self.foreground_box.update(event)
+        self.effected_group
         super().update(event)
 
         return self.find_foreground_box_relative_position
@@ -73,10 +86,10 @@ class ScrollBar(UiElement):
                     set_to = pygame.mouse.get_pos()
 
             if event.button == pygame.MOUSEBUTTONDOWN:
-                set_to = pygame.mouse.get_pos()[0] - self.SCROLL_AMOUNT, pygame.mouse.get_pos()[1] - self.SCROLL_AMOUNT
+                set_to = pygame.mouse.get_pos()[0] - self.scroll_amount, pygame.mouse.get_pos()[1] - self.scroll_amount
 
             if event.button == pygame.MOUSEBUTTONUP:
-                set_to = pygame.mouse.get_pos()[0] + self.SCROLL_AMOUNT, pygame.mouse.get_pos()[1] + self.SCROLL_AMOUNT
+                set_to = pygame.mouse.get_pos()[0] + self.scroll_amount, pygame.mouse.get_pos()[1] + self.scroll_amount
 
             self.set_foreground_box_position(set_to)
 

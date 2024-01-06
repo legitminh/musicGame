@@ -48,6 +48,9 @@ class UiElement(ABC):
         tmp = copy(self)
         tmp.size_function = size_func
         return tmp
+    
+    def move(self, vector: tuple[int, int]) -> None:
+        self.position_function = lambda x, y: (self.position_function(x, y)[0] + vector[0],  self.position(x, y)[1] + vector[0])
 
     @property
     def is_hovered_over(self) -> bool:
@@ -72,6 +75,36 @@ class UiElement(ABC):
 
         for arg, val in kwargs.items():
             UiElement.__setattr__(UiElement, arg, val)
+    
+    @property
+    def top(self): return self.rect.top
+    
+    @property
+    def bottom(self): return self.rect.bottom
+    
+    @property
+    def left(self): return self.rect.left
+    
+    @property
+    def right(self): return self.rect.right
+
+    @property
+    def height(self): return self.rect.height
+    
+    @property
+    def width(self): return self.rect.width
+    
+    @property
+    def topleft(self): return self.rect.topleft
+
+    @property
+    def topright(self): return self.rect.topright
+
+    @property
+    def bottomleft(self): return self.rect.bottomleft
+
+    @property
+    def bottomright(self): return self.rect.bottomright
 
 
 class UiElementGroup:
@@ -79,9 +112,40 @@ class UiElementGroup:
         self.elements = args
 
     def update(self, event: pygame.event.Event):
-        for element in self.elements:
-            element.update(event)
+        [element.update(event) for element in self.elements]
 
     def draw(self):
-        for event in self.elements:
-            event.draw()
+        [element.draw() for element in self.elements]
+
+    def move(self):
+        [element.move() for element in self.elements]
+    
+    @property
+    def top(self): return min(element.top for element in self.elements)
+
+    @property
+    def bottom(self): return max(element.bottom for element in self.elements)
+
+    @property
+    def left(self): return min(element.left for element in self.elements)
+
+    @property
+    def right(self): return max(element.right for element in self.elements)
+
+    @property
+    def height(self): return self.bottom - self.top
+    
+    @property
+    def width(self): return self.right - self.left
+
+    @property
+    def topleft(self): return (self.left, self.top)
+
+    @property
+    def topright(self): return (self.right, self.top)
+
+    @property
+    def bottomleft(self): return (self.left, self.bottom)
+
+    @property
+    def bottomright(self): return (self.right, self.bottom)
