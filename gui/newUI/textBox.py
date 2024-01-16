@@ -1,3 +1,10 @@
+"""
+TODO: seperate text storage from generation
+    - only render the text when absolutly nessisary
+        - text content/properties changed
+        - move text boxes if the image has not changed
+    - store text in a `Text` class to handel when it needs to be rendered
+"""
 import pygame
 from UI import UiElement
 from iterfaces import Color, Direction, OverflowingOptions
@@ -251,7 +258,7 @@ class TextBox(UiElement):
         text, properties = text_and_properties
         leftover = ''
 
-        while (image := self.render_text(text, properties)).get_width() > self.line_length() - used_space:
+        while self.get_size_of(text, properties)[0] > self.line_length() - used_space:
             if len(text) == 1:
                 return None, text
             i = text.rfind(' ')
@@ -261,12 +268,17 @@ class TextBox(UiElement):
                 i = len(text) - 1
             leftover = text[i:] + leftover
             text = text[:i]
-
-        return image, leftover
+        
+        return self.render_text(text, properties), leftover
 
     def line_length(self, position: None = None, width: None | int = None) -> int | float:
         # TODO: additional logic is needed to calculate the length of a line on a curved box
         return self.rect.width - 2 * self.margin
+
+    @staticmethod
+    def get_size_of(text: str, properties: dict[str, int | bool | str]) -> pygame.surface.Surface:
+        font = pygame.font.SysFont(properties['f'], properties['s'], bold=properties['b'], italic=properties['i'])
+        return font.size(text)
 
     @staticmethod
     def render_text(text: str, properties: dict[str, int | bool | str]) -> pygame.surface.Surface:
