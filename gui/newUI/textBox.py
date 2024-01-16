@@ -395,9 +395,6 @@ class TextBox(UiElement):
             's': self.text_size  # size  int
         }
 
-    def set_position(self, position: tuple[int, int]):
-        self.box.set_position(position)
-
     def move(self, displacement: tuple[int, int]):
         self.box.move(displacement)
 

@@ -70,12 +70,6 @@ class Box(UiElement):
         if event.type == pygame.MOUSEMOTION and self.is_selected:
             self.ondrag()
 
-    def set_position(self, position: tuple[int, int]):
-        self.position = position
-
-    def move(self, displacement: tuple[int, int]):
-        self.position = self.position[X] + displacement[X], self.position[Y] + displacement[Y]
-
     def set_onclick(self, func: Callable[['Box'], None]) -> None:
         self.onclick = func
 

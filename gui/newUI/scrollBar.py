@@ -75,25 +75,25 @@ class ScrollBar(UiElement):
         return percentage
 
     def drag_foreground_box(self, event):
-        if event == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN:
             set_to = self.foreground_box.position
 
             if event.button == pygame.BUTTON_LEFT:
-                if self.foreground_box.is_selected:
+                if self.background_box.is_selected:
                     self.is_being_dragged = True
 
                 if not self.foreground_box.is_hovered_over or self.is_being_dragged:
                     set_to = pygame.mouse.get_pos()
 
-            if event.button == pygame.MOUSEBUTTONDOWN:
-                set_to = pygame.mouse.get_pos()[0] - self.scroll_amount, pygame.mouse.get_pos()[1] - self.scroll_amount
+            if event.button == 4:  # scroll up
+                set_to = set_to[0] + self.scroll_amount, set_to[1] + self.scroll_amount
 
-            if event.button == pygame.MOUSEBUTTONUP:
-                set_to = pygame.mouse.get_pos()[0] + self.scroll_amount, pygame.mouse.get_pos()[1] + self.scroll_amount
+            if event.button == 5:
+                set_to = set_to[0] - self.scroll_amount, set_to[1] - self.scroll_amount
 
             self.set_foreground_box_position(set_to)
 
-        elif event == pygame.MOUSEBUTTONUP:
+        elif event.type == pygame.MOUSEBUTTONUP:
             if event.button != pygame.BUTTON_LEFT:
                 self.is_being_dragged = False
                 self.foreground_box.is_selected = False
@@ -105,6 +105,8 @@ class ScrollBar(UiElement):
             new_position = (position[X], self.foreground_box.rect.top)
 
         self.foreground_box.set_position(new_position)
+        print(new_position)
+        print(self.foreground_box.position)
 
     def draw(self):
         if self.hidden:

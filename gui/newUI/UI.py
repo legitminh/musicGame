@@ -20,8 +20,13 @@ class UiElement(ABC):
         self.display_surface = display_surface
         self.display_size = display_surface.get_size()
 
-        self.position_function = position_function
-        self.size_function = size_function
+        self.dx, self.dy = 0, 0
+        self.position_function = lambda x, y: (
+            position_function(x, y)[0] + self.dx, position_function(x, y)[1] + self.dy
+        )
+        self.size_function = lambda x, y: (
+            size_function(x, y)[0] + self.dx, size_function(x, y)[1] + self.dy
+        )
 
         self.position = self.position_function(*self.display_size)
         self.size = self.size_function(*self.display_size)
@@ -32,9 +37,6 @@ class UiElement(ABC):
         if event.type == pygame.VIDEORESIZE:
             self.display_size = self.display_surface.get_size()
 
-            self.position = self.position_function(*self.display_size)
-            self.size = self.size_function(*self.display_size)
-            self.rect = pygame.rect.Rect(self.position, self.size)
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_LEFT:
             self.is_selected = self.is_hovered_over ^ self.is_selected & self.is_hovered_over
@@ -42,15 +44,26 @@ class UiElement(ABC):
     def set_pos_func(self, pos_func: Callable[[int, int], tuple[int, int]]) -> 'UiElement':
         tmp = copy(self)
         tmp.position_function = pos_func
+        tmp.dx, tmp.dy = 0, 0
         return tmp
 
     def set_size_func(self, size_func: Callable[[int, int], tuple[int, int]]) -> 'UiElement':
         tmp = copy(self)
         tmp.size_function = size_func
+        tmp.dx, tmp.dy = 0, 0
         return tmp
     
+    def update_position(self):
+        self.position = self.position_function(*self.display_size)
+        self.size = self.size_function(*self.display_size)
+        self.rect = pygame.rect.Rect(self.position, self.size)
+
+    def set_position(self, vector: tuple[int, int]) -> None:
+        pos = self.position_function(self.display_surface.get_width(), self.display_surface.get_height())
+        self.dx, self.dy = vector[0] - pos[0], vector[1] - pos[1]
+
     def move(self, vector: tuple[int, int]) -> None:
-        self.position_function = lambda x, y: (self.position_function(x, y)[0] + vector[0],  self.position(x, y)[1] + vector[0])
+        self.dx, self.dy = vector
 
     @property
     def is_hovered_over(self) -> bool:

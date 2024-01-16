@@ -27,7 +27,7 @@ def main():
         '<c:gray40, i>Place holder</>'
     )
     scroll_bar = ScrollBar(
-        Box(screen, lambda x, y: [50, 50], lambda x, y: [50, y - 50]), 
+        Box(screen, lambda x, y: [50, 50], lambda x, y: [50, y - 50], focused_color=Color('light gray')), 
         Box(screen, lambda x, y: [50, 50], lambda x, y: [50, 100], background_color=Color('dark gray')),
         list_group, 
         display_area=500, 
