@@ -24,8 +24,6 @@ class Orientation(Enum):
 
 
 class ScrollBar(UiElement):
-    is_being_dragged = False
-
     def __init__(
             self, 
             background_box: Box, 
@@ -52,14 +50,15 @@ class ScrollBar(UiElement):
         self.display_percentage = display_percentage
 
     def update(self, event: pygame.event.Event) -> float:
-        self.drag_foreground_box(event)
+        super().update(event)
 
         self.background_box.update(event)
         if self.background_box.rect is not self.rect:
             self.rect = self.background_box.rect
         self.foreground_box.update(event)
-        self.effected_group
-        super().update(event)
+        self.effected_group  # TODO: change effected_group
+        
+        self.drag_foreground_box(event)
 
         return self.find_foreground_box_relative_position
 
@@ -75,14 +74,14 @@ class ScrollBar(UiElement):
         return percentage
 
     def drag_foreground_box(self, event):
+        if self.background_box.is_selected:
+            self.set_foreground_box_position(pygame.mouse.get_pos())
+
         if event.type == pygame.MOUSEBUTTONDOWN:
-            set_to = self.foreground_box.position
+            set_to = None
 
             if event.button == pygame.BUTTON_LEFT:
-                if self.background_box.is_selected:
-                    self.is_being_dragged = True
-
-                if not self.foreground_box.is_hovered_over or self.is_being_dragged:
+                if not self.foreground_box.is_hovered_over and self.background_box.is_selected:
                     set_to = pygame.mouse.get_pos()
 
             if event.button == 4:  # scroll up
@@ -91,22 +90,34 @@ class ScrollBar(UiElement):
             if event.button == 5:
                 set_to = set_to[0] - self.scroll_amount, set_to[1] - self.scroll_amount
 
-            self.set_foreground_box_position(set_to)
+            if set_to is not None:
+                self.set_foreground_box_position(set_to)
 
         elif event.type == pygame.MOUSEBUTTONUP:
-            if event.button != pygame.BUTTON_LEFT:
-                self.is_being_dragged = False
+            if event.button == pygame.BUTTON_LEFT:
+                self.background_box.is_selected = False
                 self.foreground_box.is_selected = False
 
     def set_foreground_box_position(self, position: tuple[int, int]):
+        new_pos = None
         if self.orientation == Orientation.vertical:
-            new_position = (self.foreground_box.rect.left, position[Y])
+            if self.background_box.bottom < position[Y] + self.foreground_box.height / 2:
+                new_pos = (self.foreground_box.rect.left, self.background_box.bottom - self.foreground_box.height)
+            elif self.background_box.top > position[Y] - self.foreground_box.height / 2:
+                new_pos = (self.foreground_box.rect.left, self.background_box.top)
+            else:
+                new_pos = (self.foreground_box.rect.left, position[Y] - self.foreground_box.height / 2)
         else:
-            new_position = (position[X], self.foreground_box.rect.top)
+            
+            if self.background_box.left < position[X] - self.foreground_box.width / 2:
+                new_pos = (self.background_box.left, self.foreground_box.rect.top)
+            elif position[X] + self.foreground_box.width / 2 < self.background_box.right:
+                new_pos = (self.background_box.right - self.foreground_box.width, self.foreground_box.rect.top)
+            else:
+                new_pos = (position[X] - self.foreground_box.width / 2, self.foreground_box.top)
 
-        self.foreground_box.set_position(new_position)
-        print(new_position)
-        print(self.foreground_box.position)
+        if new_pos is not None:
+            self.foreground_box.set_position(new_pos)
 
     def draw(self):
         if self.hidden:

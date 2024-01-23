@@ -25,7 +25,7 @@ class UiElement(ABC):
             position_function(x, y)[0] + self.dx, position_function(x, y)[1] + self.dy
         )
         self.size_function = lambda x, y: (
-            size_function(x, y)[0] + self.dx, size_function(x, y)[1] + self.dy
+            size_function(x, y)[0], size_function(x, y)[1]
         )
 
         self.position = self.position_function(*self.display_size)
@@ -58,9 +58,11 @@ class UiElement(ABC):
         self.size = self.size_function(*self.display_size)
         self.rect = pygame.rect.Rect(self.position, self.size)
 
-    def set_position(self, vector: tuple[int, int]) -> None:
-        pos = self.position_function(self.display_surface.get_width(), self.display_surface.get_height())
-        self.dx, self.dy = vector[0] - pos[0], vector[1] - pos[1]
+    def set_position(self, position: tuple[int, int]) -> None:
+        pos = self.position
+        self.dx += position[0] - pos[0]
+        self.dy += position[1] - pos[1]
+        self.update_position()
 
     def move(self, vector: tuple[int, int]) -> None:
         self.dx, self.dy = vector
