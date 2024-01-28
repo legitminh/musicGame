@@ -15,11 +15,8 @@ def main():
 
     list_group = ListGroup(
         10, *[
-            Box(screen, lambda x, y: [200, 100], lambda x, y: [100, 50]), 
-            Box(screen, lambda x, y: [200, 300], lambda x, y: [100, 50]), 
-            Box(screen, lambda x, y: [200, 500], lambda x, y: [100, 50]), 
-            Box(screen, lambda x, y: [200, 700], lambda x, y: [100, 50]), 
-            Box(screen, lambda x, y: [200, 900], lambda x, y: [100, 50]), 
+            EditableTextBox(Box(screen, lambda x, y: [200, 50 * i], lambda x, y: [100, 50]), str(i)) 
+            for i in range(100)
         ]
     )
     input_box = EditableTextBox(
@@ -30,7 +27,7 @@ def main():
         Box(screen, lambda x, y: [50, 50], lambda x, y: [50, y - 50], focused_color=Color('light gray')), 
         Box(screen, lambda x, y: [50, 50], lambda x, y: [50, 100], background_color=Color('dark gray')),
         list_group, 
-        display_area=500, 
+        display_area_func=lambda x, y: y - list_group.top, 
         display_percentage=True
     )
     while True:

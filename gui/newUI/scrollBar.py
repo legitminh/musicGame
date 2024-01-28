@@ -12,6 +12,7 @@ from box import Box
 from textBox import TextBox
 import pygame
 from enum import Enum
+from typing import Callable
 
 
 X = 0
@@ -29,16 +30,17 @@ class ScrollBar(UiElement):
             background_box: Box, 
             foreground_box: TextBox, 
             effected_group: UiElementGroup,
-            display_area: float,
+            display_area_func: Callable[[float, float], float],
             display_percentage: bool = False
         ) -> None:
         super().__init__(background_box.display_surface, background_box.position_function, background_box.size_function)
 
         self.rect = background_box.rect
         self.effected_group = effected_group
-        self.display_area = display_area
+        self.display_area_function = display_area_func
+        self.display_area = self.display_area_function(*self.display_surface.get_size())
 
-        self.scroll_amount = self.effected_group.height / self.display_area
+        self.scroll_amount = self.effected_group.height / self.display_area / 5
 
         self.background_box = background_box
         if background_box.rect.width > background_box.rect.height:
@@ -51,19 +53,23 @@ class ScrollBar(UiElement):
 
     def update(self, event: pygame.event.Event) -> float:
         super().update(event)
+        if event.type == pygame.VIDEORESIZE:
+            self.display_area = self.display_area_function(*self.display_surface.get_size())
 
         self.background_box.update(event)
-        if self.background_box.rect is not self.rect:
-            self.rect = self.background_box.rect
         self.foreground_box.update(event)
-        self.effected_group  # TODO: change effected_group
+        
+        displacement = [0, 0]
+        displacement[0 if self.orientation == Orientation.horizontal else 1] = \
+            (self.effected_group.height - self.display_area) * self.foreground_box_relative_position
+        self.effected_group.set_displacement(displacement)
         
         self.drag_foreground_box(event)
 
-        return self.find_foreground_box_relative_position
+        return self.foreground_box_relative_position
 
     @property
-    def find_foreground_box_relative_position(self):
+    def foreground_box_relative_position(self):
         if self.orientation == Orientation.vertical:
             percentage = (self.background_box.rect.top - self.foreground_box.rect.top) / \
                          (self.background_box.rect.height - self.foreground_box.rect.height)
@@ -85,10 +91,18 @@ class ScrollBar(UiElement):
                     set_to = pygame.mouse.get_pos()
 
             if event.button == 4:  # scroll up
-                set_to = set_to[0] + self.scroll_amount, set_to[1] + self.scroll_amount
+                displacement = [0, 0]
+                displacement[0 if self.orientation == Orientation.horizontal else 1] = -self.scroll_amount
+                self.foreground_box.move(displacement)
+                if self.foreground_box.top < self.background_box.top:
+                    self.foreground_box.set_position(self.background_box.topleft)
 
             if event.button == 5:
-                set_to = set_to[0] - self.scroll_amount, set_to[1] - self.scroll_amount
+                displacement = [0, 0]
+                displacement[0 if self.orientation == Orientation.horizontal else 1] = self.scroll_amount
+                self.foreground_box.move(displacement)
+                if self.foreground_box.bottom > self.background_box.bottom:
+                    self.foreground_box.set_position((self.background_box.left, self.background_box.bottom - self.foreground_box.height))
 
             if set_to is not None:
                 self.set_foreground_box_position(set_to)
@@ -108,7 +122,6 @@ class ScrollBar(UiElement):
             else:
                 new_pos = (self.foreground_box.rect.left, position[Y] - self.foreground_box.height / 2)
         else:
-            
             if self.background_box.left < position[X] - self.foreground_box.width / 2:
                 new_pos = (self.background_box.left, self.foreground_box.rect.top)
             elif position[X] + self.foreground_box.width / 2 < self.background_box.right:

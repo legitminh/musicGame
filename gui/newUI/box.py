@@ -7,7 +7,7 @@ TODO: separate out the box, text box, and image box classes.
 import pygame
 from UI import UiElement
 from iterfaces import Color, Direction
-from typing import Callable, Any
+from typing import Callable
 
 
 X = 0
@@ -49,9 +49,6 @@ class Box(UiElement):
     def draw(self):
         if self.hidden:
             return
-
-        if self.draw_from == Direction.center:
-            self.set_position((self.position[X] - self.size[X], self.position[Y] - self.size[Y]))
 
         if (self.fill_in_border and self.border_size) or not self.border_size:
             color = self.focused_color if self.is_hovered_over or self.is_selected else self.background_color

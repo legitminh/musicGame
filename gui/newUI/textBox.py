@@ -407,9 +407,6 @@ class TextBox(UiElement):
             's': self.text_size  # size  int
         }
 
-    def move(self, displacement: tuple[int, int]):
-        self.box.move(displacement)
-
     def set_text(self, text: str) -> 'TextBox':
         self._text_by_line = None
         self._images_by_line = None
