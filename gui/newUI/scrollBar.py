@@ -4,6 +4,8 @@ A scroll bar which is composed of four boxes
 2. the background box (optional)
 3. the up arrow box (optional)
 4. the down arrow box (optional)
+
+TODO: add momentum to the scroll bar
 """
 
 
@@ -40,7 +42,11 @@ class ScrollBar(UiElement):
         self.display_area_function = display_area_func
         self.display_area = self.display_area_function(*self.display_surface.get_size())
 
-        self.scroll_amount = self.effected_group.height / self.display_area / 5
+        self.velocity = 0
+        self.acceloration = self.effected_group.height / self.display_area
+        print(self.acceloration)
+        self.dt = 0
+        self.previous_time = pygame.time.get_ticks()
 
         self.background_box = background_box
         if background_box.rect.width > background_box.rect.height:
@@ -59,12 +65,9 @@ class ScrollBar(UiElement):
         self.background_box.update(event)
         self.foreground_box.update(event)
         
-        displacement = [0, 0]
-        displacement[0 if self.orientation == Orientation.horizontal else 1] = \
-            (self.effected_group.height - self.display_area) * self.foreground_box_relative_position
-        self.effected_group.set_displacement(displacement)
-        
         self.drag_foreground_box(event)
+
+        self.update_effected_group()
 
         return self.foreground_box_relative_position
 
@@ -79,6 +82,29 @@ class ScrollBar(UiElement):
 
         return percentage
 
+    def move_foreground_box(self):
+        if self.velocity:
+            print(self.velocity)
+            displacement = [0, 0]
+            displacement[0 if self.orientation == Orientation.horizontal else 1] = self.velocity
+            self.foreground_box.move(displacement)
+            if self.foreground_box.top < self.background_box.top:
+                self.foreground_box.set_position(self.background_box.topleft)
+                self.velocity = 0
+            if self.foreground_box.bottom > self.background_box.bottom:
+                self.foreground_box.set_position((self.background_box.left, self.background_box.bottom - self.foreground_box.height))
+                self.velocity = 0
+        
+        self.velocity *= .9
+        if abs(self.velocity) < 1:
+            self.velocity = 0
+
+    def update_effected_group(self):
+        displacement = [0, 0]
+        displacement[0 if self.orientation == Orientation.horizontal else 1] = \
+            (self.effected_group.height - self.display_area) * self.foreground_box_relative_position
+        self.effected_group.set_displacement(displacement)
+
     def drag_foreground_box(self, event):
         if self.background_box.is_selected:
             self.set_foreground_box_position(pygame.mouse.get_pos())
@@ -91,18 +117,10 @@ class ScrollBar(UiElement):
                     set_to = pygame.mouse.get_pos()
 
             if event.button == 4:  # scroll up
-                displacement = [0, 0]
-                displacement[0 if self.orientation == Orientation.horizontal else 1] = -self.scroll_amount
-                self.foreground_box.move(displacement)
-                if self.foreground_box.top < self.background_box.top:
-                    self.foreground_box.set_position(self.background_box.topleft)
+                self.velocity -= self.acceloration * self.dt
 
             if event.button == 5:
-                displacement = [0, 0]
-                displacement[0 if self.orientation == Orientation.horizontal else 1] = self.scroll_amount
-                self.foreground_box.move(displacement)
-                if self.foreground_box.bottom > self.background_box.bottom:
-                    self.foreground_box.set_position((self.background_box.left, self.background_box.bottom - self.foreground_box.height))
+                self.velocity += self.acceloration * self.dt
 
             if set_to is not None:
                 self.set_foreground_box_position(set_to)
@@ -133,8 +151,12 @@ class ScrollBar(UiElement):
             self.foreground_box.set_position(new_pos)
 
     def draw(self):
+        self.dt = (pygame.time.get_ticks() - self.previous_time)
+        self.previous_time = pygame.time.get_ticks()
         if self.hidden:
             return
+        self.move_foreground_box()
+        self.update_effected_group()
         self.background_box.draw()
         self.foreground_box.draw()
 

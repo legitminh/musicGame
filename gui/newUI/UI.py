@@ -40,7 +40,6 @@ class UiElement(ABC):
         if event.type == pygame.VIDEORESIZE:
             self.display_size = self.display_surface.get_size()
 
-
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_LEFT:
             self.is_selected = self.is_hovered_over ^ self.is_selected & self.is_hovered_over
 
