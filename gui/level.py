@@ -1,8 +1,5 @@
 """
 This file handels displaying the level screen.
-
-TODO: responsive system
-    - Change column color/note color
 """
 
 
@@ -26,9 +23,13 @@ class Level(Screen):
     """
     slowdown: float
     volume: float
+    velocity: float
+    song_id: int
+    bucket_settings: dict[int, tuple[int, str]]
     extreme = False
-    # bucket_key_order = [pygame.K_f, pygame.K_j]
-    # the order for which the buckets are created, the first bucket will have an input key of "`", the second bucket will have an input key of "1", and so on.
+    background_surface: pygame.surface.Surface
+
+    key_to_bucket: dict[int, int]
     
     dt = 0
 
@@ -61,7 +62,7 @@ class Level(Screen):
             ValueError: If `volume`, `velocity`, `song_id`, `extreme`, `slowdown`, or `bucket_settings` are not included in `kwargs`.
         """
         tmp = kwargs.copy()
-        arguments = {'volume': float, 'velocity': float, 'song_id': int, 'extreme': bool, 'slowdown': int | float, 'bucket_settings': list}
+        arguments = {'volume': float, 'velocity': float, 'song_id': int, 'extreme': bool, 'slowdown': int | float, 'bucket_settings': dict}
         for kwarg in kwargs:
             if kwarg not in arguments:
                 tmp.pop(kwarg)
@@ -74,6 +75,7 @@ class Level(Screen):
         super().__init__(screen, clock, **kwargs)
         
         self._note_init()
+        self._render_background()
         pygame.mixer.music.set_volume(self.volume)
     
     def loop(self) -> Redirect:
@@ -90,8 +92,10 @@ class Level(Screen):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     raise ExitException()
+                if event.type == pygame.VIDEORESIZE:
+                    self._render_background()
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE: #ESC to exit song
+                    if event.key == pygame.K_ESCAPE:
                         pygame.mixer.music.stop()
                         return Redirect(ScreenID.levelOptions, song_id=self.song_id)
                     self._key_down(event)
@@ -118,7 +122,30 @@ class Level(Screen):
         self.velocity = 100 + 1400 * self.velocity
         _, self.notes = midi_note_extractor(self.song_id, self.slowdown, self.extreme, self.velocity)
 
-    def _all_note_cycle(self) -> None:  # note GFX
+        self.key_to_bucket = {a: i for i, [a, _] in enumerate(self.bucket_settings.values())}
+    
+    def _render_background(self) -> None:
+        """
+        Renders the background of the level and stores it as a pygame surface to be displayed later.
+        This function is called at the start of a level and everytime the screen size changes.
+
+        Returns:
+            None
+        """
+        self.background_surface = pygame.Surface(self.screen.get_size())
+        for i in range(self.notes.num_buckets):
+            bucket_width = self.screen.get_width() / self.notes.num_buckets
+            ALT_PERIOD = 2 if self.notes.num_buckets < 12 else 4
+            draw_rect_alpha(self.background_surface, (ALT_COLOR if (i // ALT_PERIOD) % 2 else BACKGROUND_COLOR), [i*bucket_width , 0, (i+1)*bucket_width, self.screen.get_height()], 0)
+        
+        alternate = True
+        for bucket in range(self.notes.num_buckets):
+            text = pygame.font.Font('Assets/Fonts/Roboto-Light.ttf', 24).render(str(self.bucket_settings[bucket][1]), True, "blue")
+            pos = self.screen.get_width() / self.notes.num_buckets * (bucket + 0.5), self.screen.get_height() * .9 + (-8 if alternate else 8)
+            self.background_surface.blit(text, text.get_rect(center=pos))
+            alternate = not alternate
+
+    def _all_note_cycle(self) -> None:
         """
         Moves the notes down by `velocity` pixles every second.
 
@@ -128,18 +155,6 @@ class Level(Screen):
         self.notes.draw(self.screen)
         self.notes.update(self.dt * self.velocity)
     
-    def _draw_key_names(self) -> None:
-        """
-        Draws the names of each bucket.
-
-        Returns:
-            None
-        """
-        alternate = True
-        for bucket in range(self.notes.num_buckets):
-            make_text(self.screen, self.screen.get_width() / self.notes.num_buckets * (bucket + 0.5), self.screen.get_height() * .9 + (-8 if alternate else 8), self.bucket_settings[bucket][1])
-            alternate = not alternate
-    
     def _update_notes(self) -> Redirect | None:
         """
         Checks if the the song has ended and removes notes if said note falls below the screen.
@@ -148,7 +163,7 @@ class Level(Screen):
             Redirect: If the song has ended.
             None: If the song has not ended.
         """
-        if len(self.notes) == 0:  # check if finished song
+        if len(self.notes) == 0:
             pygame.mixer.music.stop()
             try:
                 return Redirect(
@@ -165,15 +180,6 @@ class Level(Screen):
                 break
             self.total_hits += 1
             self.notes.pop(0)
-
-    def _draw_back_ground(self) -> None:
-        """
-        Draws the back ground of the level screen.        
-        """
-        for i in range(self.notes.num_buckets):
-            bucket_width = self.screen.get_width() / self.notes.num_buckets
-            ALT_PERIOD = 2 if self.notes.num_buckets < 12 else 4
-            draw_rect_alpha(self.screen, (ALT_COLOR if (i // ALT_PERIOD) % 2 else BACKGROUND_COLOR), [i*bucket_width , 0, (i+1)*bucket_width, self.screen.get_width() * LINE_LEVEL], 0)
         
     def _draw(self) -> None:
         """
@@ -183,10 +189,9 @@ class Level(Screen):
             None
         """
         line_px_level = int(self.screen.get_height() * LINE_LEVEL)
-        self._draw_back_ground()
+        self.screen.blit(self.background_surface, (0, 0))
             
         self._all_note_cycle()
-        self._draw_key_names()
         
         pygame.draw.line(self.screen, LINE_COLOR, (0, line_px_level), (self.screen.get_width(), line_px_level))
         try:
@@ -204,11 +209,11 @@ class Level(Screen):
             None
         """
         self.total_hits += 1
-        bucket_id = self._convert_key_to_bucket_id(event.key)
+        bucket_id = self.key_to_bucket.get(event.key)
         if bucket_id is None: return
         for note in self.notes.get_bucket(bucket_id):
             note.unpressed()
-            if 0 < note.dist_from_bottom:  # if not in colliding range
+            if 0 < note.dist_from_bottom:
                 break
             if 0 < note.dist_from_bottom + note.note_duration <= LENIENCY * self.velocity:
                 self.notes.remove(note)
@@ -229,19 +234,6 @@ class Level(Screen):
                 note.pressed()
                 break
     
-    def _convert_key_to_bucket_id(self, key) -> int | None:
-        """
-        Converts a key to it's corresponding bucket id (an int).
-
-        Returns:
-            int: A bucket id.
-            None: If the key does not correspond to a bucket.
-        """
-        for [i, j] in self.bucket_settings:
-            if j[0] == key:
-                return i
-        return None
-    
     def _key_down(self, event) -> None:
         """
         Starts the song if the first key was hit and checks if a key pressed corresponds to a bucket other wise.
@@ -249,7 +241,6 @@ class Level(Screen):
         Returns:
             None
         """
-        # start the song
         if self.first_hit:
             if self.slowdown < 1:
                 pygame.mixer.music.load(SONG_PATHS[self.song_id].replace("Musics/","ProcessedMusics/").replace(".wav",f'{int(self.slowdown * 100)}.wav'))
@@ -261,6 +252,6 @@ class Level(Screen):
             return
         self.total_hits += 1
         
-        bucket_id = self._convert_key_to_bucket_id( event.key )
+        bucket_id = self.key_to_bucket.get(event.key)
         if bucket_id is None: return
         self._down_hit(bucket_id)
