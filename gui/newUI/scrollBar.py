@@ -4,14 +4,17 @@ A scroll bar which is composed of four boxes
 2. the background box (optional)
 3. the up arrow box (optional)
 4. the down arrow box (optional)
+
+TODO: add momentum to the scroll bar
 """
 
 
-from .UI import UiElement
-from .box import Box
-from .textBox import TextBox
+from UI import UiElement, UiElementGroup
+from box import Box
+from textBox import TextBox
 import pygame
 from enum import Enum
+from typing import Callable
 
 
 X = 0
@@ -24,13 +27,26 @@ class Orientation(Enum):
 
 
 class ScrollBar(UiElement):
-    SCROLL_AMOUNT = 10
-    is_being_dragged = False
-
-    def __init__(self, background_box: Box, foreground_box: TextBox, display_percentage: bool = False) -> None:
+    def __init__(
+            self, 
+            background_box: Box, 
+            foreground_box: TextBox, 
+            effected_group: UiElementGroup,
+            display_area_func: Callable[[float, float], float],
+            display_percentage: bool = False
+        ) -> None:
         super().__init__(background_box.display_surface, background_box.position_function, background_box.size_function)
 
-        self.rect = foreground_box.rect
+        self.rect = background_box.rect
+        self.effected_group = effected_group
+        self.display_area_function = display_area_func
+        self.display_area = self.display_area_function(*self.display_surface.get_size())
+
+        self.velocity = 0
+        self.acceloration = self.effected_group.height / self.display_area
+        print(self.acceloration)
+        self.dt = 0
+        self.previous_time = pygame.time.get_ticks()
 
         self.background_box = background_box
         if background_box.rect.width > background_box.rect.height:
@@ -42,16 +58,21 @@ class ScrollBar(UiElement):
         self.display_percentage = display_percentage
 
     def update(self, event: pygame.event.Event) -> float:
-        self.drag_foreground_box(event)
+        super().update(event)
+        if event.type == pygame.VIDEORESIZE:
+            self.display_area = self.display_area_function(*self.display_surface.get_size())
 
         self.background_box.update(event)
         self.foreground_box.update(event)
-        super().update(event)
+        
+        self.drag_foreground_box(event)
 
-        return self.find_foreground_box_relative_position
+        self.update_effected_group()
+
+        return self.foreground_box_relative_position
 
     @property
-    def find_foreground_box_relative_position(self):
+    def foreground_box_relative_position(self):
         if self.orientation == Orientation.vertical:
             percentage = (self.background_box.rect.top - self.foreground_box.rect.top) / \
                          (self.background_box.rect.height - self.foreground_box.rect.height)
@@ -61,41 +82,81 @@ class ScrollBar(UiElement):
 
         return percentage
 
+    def move_foreground_box(self):
+        if self.velocity:
+            print(self.velocity)
+            displacement = [0, 0]
+            displacement[0 if self.orientation == Orientation.horizontal else 1] = self.velocity
+            self.foreground_box.move(displacement)
+            if self.foreground_box.top < self.background_box.top:
+                self.foreground_box.set_position(self.background_box.topleft)
+                self.velocity = 0
+            if self.foreground_box.bottom > self.background_box.bottom:
+                self.foreground_box.set_position((self.background_box.left, self.background_box.bottom - self.foreground_box.height))
+                self.velocity = 0
+        
+        self.velocity *= .9
+        if abs(self.velocity) < 1:
+            self.velocity = 0
+
+    def update_effected_group(self):
+        displacement = [0, 0]
+        displacement[0 if self.orientation == Orientation.horizontal else 1] = \
+            (self.effected_group.height - self.display_area) * self.foreground_box_relative_position
+        self.effected_group.set_displacement(displacement)
+
     def drag_foreground_box(self, event):
-        if event == pygame.MOUSEBUTTONDOWN:
-            set_to = self.foreground_box.position
+        if self.background_box.is_selected:
+            self.set_foreground_box_position(pygame.mouse.get_pos())
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            set_to = None
 
             if event.button == pygame.BUTTON_LEFT:
-                if self.foreground_box.is_selected:
-                    self.is_being_dragged = True
-
-                if not self.foreground_box.is_hovered_over or self.is_being_dragged:
+                if not self.foreground_box.is_hovered_over and self.background_box.is_selected:
                     set_to = pygame.mouse.get_pos()
 
-            if event.button == pygame.MOUSEBUTTONDOWN:
-                set_to = pygame.mouse.get_pos()[0] - self.SCROLL_AMOUNT, pygame.mouse.get_pos()[1] - self.SCROLL_AMOUNT
+            if event.button == 4:  # scroll up
+                self.velocity -= self.acceloration * self.dt
 
-            if event.button == pygame.MOUSEBUTTONUP:
-                set_to = pygame.mouse.get_pos()[0] + self.SCROLL_AMOUNT, pygame.mouse.get_pos()[1] + self.SCROLL_AMOUNT
+            if event.button == 5:
+                self.velocity += self.acceloration * self.dt
 
-            self.set_foreground_box_position(set_to)
+            if set_to is not None:
+                self.set_foreground_box_position(set_to)
 
-        elif event == pygame.MOUSEBUTTONUP:
-            if event.button != pygame.BUTTON_LEFT:
-                self.is_being_dragged = False
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == pygame.BUTTON_LEFT:
+                self.background_box.is_selected = False
                 self.foreground_box.is_selected = False
 
     def set_foreground_box_position(self, position: tuple[int, int]):
+        new_pos = None
         if self.orientation == Orientation.vertical:
-            new_position = (self.foreground_box.rect.left, position[Y])
+            if self.background_box.bottom < position[Y] + self.foreground_box.height / 2:
+                new_pos = (self.foreground_box.rect.left, self.background_box.bottom - self.foreground_box.height)
+            elif self.background_box.top > position[Y] - self.foreground_box.height / 2:
+                new_pos = (self.foreground_box.rect.left, self.background_box.top)
+            else:
+                new_pos = (self.foreground_box.rect.left, position[Y] - self.foreground_box.height / 2)
         else:
-            new_position = (position[X], self.foreground_box.rect.top)
+            if self.background_box.left < position[X] - self.foreground_box.width / 2:
+                new_pos = (self.background_box.left, self.foreground_box.rect.top)
+            elif position[X] + self.foreground_box.width / 2 < self.background_box.right:
+                new_pos = (self.background_box.right - self.foreground_box.width, self.foreground_box.rect.top)
+            else:
+                new_pos = (position[X] - self.foreground_box.width / 2, self.foreground_box.top)
 
-        self.foreground_box.set_position(new_position)
+        if new_pos is not None:
+            self.foreground_box.set_position(new_pos)
 
     def draw(self):
+        self.dt = (pygame.time.get_ticks() - self.previous_time)
+        self.previous_time = pygame.time.get_ticks()
         if self.hidden:
             return
+        self.move_foreground_box()
+        self.update_effected_group()
         self.background_box.draw()
         self.foreground_box.draw()
 

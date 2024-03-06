@@ -1,31 +1,37 @@
-
+"""
+TODO: seperate text storage from generation
+    - only render the text when absolutly nessisary
+        - text content/properties changed
+        - move text boxes if the image has not changed
+    - store text in a `Text` class to handel when it needs to be rendered
+"""
 import pygame
-from enum import Enum
-from .UI import UiElement
-from .iterfaces import Color, Direction, OverflowingOptions
+from UI import UiElement
+from iterfaces import Color, Direction, OverflowingOptions
 from box import Box
 
 
 class TextBox(UiElement):
     # the text after it has been interpreted
-    __text_by_line: list[list[list[str, dict]]] | None = None
+    _text_by_line: list[list[list[str, dict]]] | None = None
 
     # the images of the text after it has been rendered
-    __images_by_line: list[list[pygame.surface.Surface]] | None = None
+    _images_by_line: list[list[pygame.surface.Surface]] | None = None
 
     def __init__(
             self,
+            box: 'Box',
             text: str,
-            text_color: 'Color',
-            text_size: int,
-            text_font: str | None,
-            text_wrap: bool,
-            text_justification: 'Direction',
-            if_overflowing_text: 'OverflowingOptions',
-            resize_box_to_text: bool,
-            margin: int,
 
-            box: 'Box'
+            text_color: 'Color' = Color('black'),
+            text_size: int = 20,
+            text_font: str | None = 'Arial',
+            text_wrap: bool = True,
+            text_justification: 'Direction' = Direction.center,
+            if_overflowing_text: 'OverflowingOptions' = OverflowingOptions.allow_overflow,
+            resize_box_to_text: bool = True,
+            margin: int = 10,
+            process_text = True,
     ) -> None:
         super().__init__(box.display_surface, box.position_function, box.size_function)
         self.text = text
@@ -38,6 +44,7 @@ class TextBox(UiElement):
         self.resize_box_to_text = resize_box_to_text
 
         self.margin = margin
+        self.process_text = process_text
 
         self.box = box
 
@@ -45,10 +52,15 @@ class TextBox(UiElement):
         if self.hidden:
             return
 
-        if self.__text_by_line is None:
-            self.__text_by_line = self.interpret_text()
-        if self.__images_by_line is None:
-            self.__images_by_line = self.convert_text_to_images()
+        self.box.draw()
+
+        if not self.text:
+            return
+
+        if self._text_by_line is None:
+            self._text_by_line = self.interpret_text()
+        if self._images_by_line is None:
+            self._images_by_line = self.convert_text_to_images()
             self.overflow()
 
         top_justification = [Direction.topleft, Direction.midtop, Direction.topright]
@@ -58,17 +70,17 @@ class TextBox(UiElement):
         mid_hor_justification = [Direction.midtop, Direction.center, Direction.midbottom]
 
         # total height of the text
-        total_image_height = sum(max(image.get_height() for image in line) for line in self.__images_by_line)
+        total_image_height = sum(max(image.get_height() for image in line) for line in self._images_by_line)
 
         # handling the height offset between the lines:
         if self.text_justification in top_justification:
             vertical_offset = 0
         elif self.text_justification in mid_ver_justification:
-            vertical_offset = (total_image_height * (1 / len(self.__images_by_line) - 1)) / 2
+            vertical_offset = (total_image_height * (1 / len(self._images_by_line) - 1)) / 2
         else:  # justification is bottom left, right, or middle
-            vertical_offset = -total_image_height + max(image.get_height() for image in self.__images_by_line[-1])
+            vertical_offset = -total_image_height + max(image.get_height() for image in self._images_by_line[-1])
 
-        for i, line in enumerate(self.__images_by_line):
+        for i, line in enumerate(self._images_by_line):
             total_image_width = sum(image.get_width() for image in line)
             if self.text_justification in left_justification:
                 horizontal_offset = 0
@@ -100,14 +112,14 @@ class TextBox(UiElement):
                 self.display_surface.blit(image, blit_pos)
 
             # handling height
-            if i < len(self.__images_by_line) - 1:
+            if i < len(self._images_by_line) - 1:
                 if self.text_justification in top_justification:
                     vertical_offset += max(image.get_height() for image in line)
                 elif self.text_justification in mid_ver_justification:
                     vertical_offset += (max(image.get_height() for image in line) +
-                                        max(image.get_height() for image in self.__images_by_line[i + 1])) / 2
+                                        max(image.get_height() for image in self._images_by_line[i + 1])) / 2
                 else:
-                    vertical_offset += max(image.get_height() for image in self.__images_by_line[i + 1])
+                    vertical_offset += max(image.get_height() for image in self._images_by_line[i + 1])
 
     def convert_text_to_images(self) -> list[list[pygame.surface.Surface]]:
         """
@@ -117,7 +129,7 @@ class TextBox(UiElement):
         """
 
         lines: list[list[pygame.surface.Surface]] = []
-        for line in self.__text_by_line:
+        for line in self._text_by_line:
             used_space = 0  # space already taken up in each line (0 for a new line, >0 for a continuation)
 
             if not self.text_wrap:
@@ -171,7 +183,7 @@ class TextBox(UiElement):
         # checking if text does not overflow:
         if self.if_overflowing_text is OverflowingOptions.allow_overflow:
             return
-        height_of_lines = sum(max(image.get_height() for image in line) for line in self.__images_by_line)
+        height_of_lines = sum(max(image.get_height() for image in line) for line in self._images_by_line)
         if not self.resize_box_to_text and height_of_lines <= self.rect.height - 2 * self.margin:
             return
 
@@ -180,28 +192,28 @@ class TextBox(UiElement):
         if self.if_overflowing_text == OverflowingOptions.resize_text:
             # need to increment/decrement the sizes of text so that it fits in the box
             # if the size of the text is 1, then end the decrementing and state that the text cannot be displayed
-            print(self.__text_by_line)
+            print(self._text_by_line)
 
             target = self.rect.height - 2 * self.margin
 
             if height_of_lines == target:  # nothing needs to be resized
                 return
             while height_of_lines < target:  # text needs to be resized up
-                for line in self.__text_by_line:
+                for line in self._text_by_line:
                     for text_and_properties in line:
                         text_and_properties[1]['s'] += 1
                 lines = self.convert_text_to_images()
-                self.__images_by_line = lines
+                self._images_by_line = lines
                 height_of_lines = sum(max(image.get_height() for image in line) for line in lines)
             while height_of_lines > target:  # text needs to be resized down
-                for line in self.__text_by_line:
+                for line in self._text_by_line:
                     for text_and_properties in line:
                         if text_and_properties[1]['s'] <= 1:
-                            self.__images_by_line = self.error_message
+                            self._images_by_line = self.error_message
                             return
                         text_and_properties[1]['s'] -= 1
                 lines = self.convert_text_to_images()
-                self.__images_by_line = lines
+                self._images_by_line = lines
                 height_of_lines = sum(max(image.get_height() for image in line) for line in lines)
         elif self.if_overflowing_text == OverflowingOptions.resize_box_down:
             self.rect.height = height_of_lines + 2 * self.margin
@@ -246,7 +258,7 @@ class TextBox(UiElement):
         text, properties = text_and_properties
         leftover = ''
 
-        while (image := self.render_text(text, properties)).get_width() > self.line_length() - used_space:
+        while self.get_size_of(text, properties)[0] > self.line_length() - used_space:
             if len(text) == 1:
                 return None, text
             i = text.rfind(' ')
@@ -256,12 +268,17 @@ class TextBox(UiElement):
                 i = len(text) - 1
             leftover = text[i:] + leftover
             text = text[:i]
-
-        return image, leftover
+        
+        return self.render_text(text, properties), leftover
 
     def line_length(self, position: None = None, width: None | int = None) -> int | float:
         # TODO: additional logic is needed to calculate the length of a line on a curved box
         return self.rect.width - 2 * self.margin
+
+    @staticmethod
+    def get_size_of(text: str, properties: dict[str, int | bool | str]) -> pygame.surface.Surface:
+        font = pygame.font.SysFont(properties['f'], properties['s'], bold=properties['b'], italic=properties['i'])
+        return font.size(text)
 
     @staticmethod
     def render_text(text: str, properties: dict[str, int | bool | str]) -> pygame.surface.Surface:
@@ -289,27 +306,26 @@ class TextBox(UiElement):
           UC(Yes; color is green, size is 20, font is arial, bolded)UC(BLUE; color is blue)UC
           UC(BLUE; color is BLUE)UC(This means you agree; size is 20, font is arial, italic)UC(BLUE; color is blue)UC
           UC(BLUE; color is blue)UC(ITALIC; italic)UC
-
-        TODO: add a flag that prevents this interpretation from being done
         """
         default_properties = self.default_properties
 
         # removing unwanted whitespaces:
         i = 0
         processed_text = ''
-        while i < len(self.text):
-            if self.text[i] == '<':
-                starting_i = i
-                i += 1
-                while self.text[i] in ' \n':
+        if self.process_text:
+            while i < len(self.text):
+                if self.text[i] == '<':
+                    starting_i = i
                     i += 1
-                if self.text[i] != '>':
-                    processed_text += self.text[starting_i: i + 1]
+                    while self.text[i] in ' \n':
+                        i += 1
+                    if self.text[i] != '>':
+                        processed_text += self.text[starting_i: i + 1]
+                    i += 1
+                    continue
+                processed_text += self.text[i]
                 i += 1
-                continue
-            processed_text += self.text[i]
-            i += 1
-        self.text = processed_text
+            self.text = processed_text
 
         text_segments: list[list[str, dict], ] = [  # splitting the text up and adding default properties to them
             [text_segment, default_properties.copy()] for text_segment in self.text.split('\n')
@@ -325,7 +341,7 @@ class TextBox(UiElement):
             add_processed_text = lambda __processed_text: text_by_line[-1].append(__processed_text)  # helper function
 
             # each loop processes a tag
-            while text_segment.count('<') > 0 and text_segment.count('>') > 0:
+            while self.process_text and text_segment.count('<') > 0 and text_segment.count('>') > 0:
 
                 tag_start = text_segment.find('<')
                 tag_end = text_segment.find('>')
@@ -391,15 +407,12 @@ class TextBox(UiElement):
             's': self.text_size  # size  int
         }
 
-    def set_position(self, position: tuple[int, int]):
-        self.box.set_position(position)
-
-    def move(self, displacement: tuple[int, int]):
-        self.box.move(displacement)
-
     def set_text(self, text: str) -> 'TextBox':
-        self.__text_by_line = None
-        self.__images_by_line = None
+        self._text_by_line = None
+        self._images_by_line = None
         self.text = text
 
         return self
+
+    def set_process_text(self, process_text: bool) -> None:
+        self.process_text = process_text

@@ -3,6 +3,7 @@ This file handels entering and exiting from the program.
 
 TODO: convert mp3/wav to machine notes.
 TODO: provide more support for resizing the screen.
+TODO: balence the volume across all songs.
 """
 import json
 import pygame
@@ -30,7 +31,8 @@ clock = pygame.time.Clock()
 high_scores: dict[str, float]
 volume: float
 velocity: float
-bucket_settings: list[int, str]
+bucket_settings: dict[int, tuple[int, str]]
+saved_bucket_settings: dict[int, str]
 
 
 def main():
@@ -46,7 +48,6 @@ def main():
         ScreenID.outro:        Outro,        # Kwargs: song_id, score, slowdown, high_scores
     }
     json_reader()
-    # print(bucket_settings)
     stored_kwargs = {'volume': volume, 'high_scores': high_scores, 'velocity': velocity, "bucket_settings" : bucket_settings}
     while True:
         try:
@@ -66,7 +67,7 @@ def json_writer():
         "playerHighScores": high_scores,
         "volume": volume,
         "velocity": velocity,
-        "bucketSettings" : bucket_settings,
+        "bucketSettings": saved_bucket_settings,
     }
     # Serializing json
     json_object = json.dumps(dictionary, indent=4)
@@ -75,15 +76,16 @@ def json_writer():
 
 
 def json_reader():
-    global high_scores, volume, velocity, bucket_settings
+    global high_scores, volume, velocity, bucket_settings, saved_bucket_settings
     with open('playerData.json', 'r') as openfile:
  
-    # Reading from json file
+        # Reading from json file
         json_object = json.load(openfile)
         high_scores = json_object["playerHighScores"]
         volume = json_object["volume"]
         velocity = json_object["velocity"]
-        bucket_settings = json_object["bucketSettings"]
+        saved_bucket_settings = json_object["bucketSettings"]
+        bucket_settings = {int(k): v for k, v in saved_bucket_settings.items()}
 
 
 if __name__ == "__main__":
