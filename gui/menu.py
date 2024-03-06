@@ -21,6 +21,8 @@ class Menu(Screen):
     mouse_down = False
     slider_velocity = 0
     prev_time = pygame.time.get_ticks()
+
+    levels_surface: pygame.surface.Surface
         
     def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, **kwargs) -> None:
         """
@@ -51,12 +53,42 @@ class Menu(Screen):
         
         super().__init__(screen, clock, **kwargs)
 
+        self.levels_surface = pygame.surface.Surface([self.screen.get_width() - 10, 60 * self.level_amount])
         self._high_scores_init()
         self._stars_init()
         self._misc_init()
         
         self._level_init()
         self._slider_init()
+
+        self._render_levels_surface()
+    
+    def _render_levels_surface(self) -> None:
+        """
+        Renders the level surface which will be moved by the slider.
+        
+        Returns:
+            None
+        """
+        self.levels_surface = pygame.surface.Surface([self.screen.get_width() - 10, 60 * self.level_amount])
+        self.levels_surface.fill(BACKGROUND_COLOR)
+        to_draw = pygame.sprite.Group()
+        for sprite in self.level_select_g.sprites() + self.high_score_g.sprites() + self.stars_g.sprites() + self.lock_g.sprites():
+            sprite: Button
+            sprite.change_surface(self.levels_surface)
+            to_draw.add(sprite)
+        
+        for i, sprite in enumerate(self.level_select_l):
+            sprite.set_pos((74, i * 60))
+        for i, sprite in enumerate(self.high_score_l):
+            sprite.set_pos((self.levels_surface.get_width() - 100, i * 60))
+        for i, sprite in enumerate(self.stars_l):
+            sprite.set_pos((self.levels_surface.get_width() - 40, i * 60))
+        for i, sprite in enumerate(self.lock_l):
+            sprite.set_pos((5, INV_REQUIREMENTS[int(sprite.text)] * 60))
+        
+        to_draw.draw(self.levels_surface)
+        to_draw.update()
     
     def loop(self) -> Redirect:
         """
@@ -69,6 +101,8 @@ class Menu(Screen):
             ExitException: If the user exits out of the screen.
         """
         while True:
+            dt = (pygame.time.get_ticks() - self.prev_time) / 1000
+            dt *= 60
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     raise ExitException()
@@ -87,8 +121,6 @@ class Menu(Screen):
                         self.slider_velocity += dt * 4
                 elif event.type == pygame.MOUSEBUTTONUP:
                     self.mouse_down = False
-            dt = (pygame.time.get_ticks() - self.prev_time) / 1000
-            dt *= 60
             self.prev_time = pygame.time.get_ticks()
             
             self._slider_update()
@@ -111,16 +143,16 @@ class Menu(Screen):
                 locked = REQUIREMENTS[_i] > self.star_count
                 directory = SONG_PATHS[_i]
                 if locked:
-                    self.lock_l.append(Button(self.screen, [10, _i * 60 + 95 - self.dy], None, REQUIREMENTS[_i], 30, alignment_pos='topleft',
+                    self.lock_l.append(Button(self.levels_surface, [0, _i * 60], None, REQUIREMENTS[_i], 30, alignment_pos='topleft',
                                         path='Assets/Images/lock.png', dim=(59, 59)))
             except KeyError:  # if song doesn't exist
                 locked = True
                 directory = "/To be discovered."
-                self.lock_l.append(Button(self.screen, [10, _i * 60 + 95 - self.dy], None, REQUIREMENTS[_i], 30, alignment_pos='topleft',
+                self.lock_l.append(Button(self.levels_surface, [0, _i * 60], None, REQUIREMENTS[_i], 30, alignment_pos='topleft',
                                         path='Assets/Images/lock.png', dim=(59, 59)))
             name = directory[directory.find("/") + 1:directory.find(".")]
             self.level_select_l.append(
-                Button(self.screen, [100, _i * 60 + 95 - self.dy], None if locked else _i, "To be discovered" if locked else name, 30, alignment_pos='topleft'))
+                Button(self.levels_surface, [90, _i * 60], None if locked else _i, "To be discovered" if locked else name, 30, alignment_pos='topleft'))
         self.total_items_len = self.level_select_l[-1].rect.bottom - self.level_select_l[0].rect.top - self.screen.get_height() + 100
         self.lock_g.add(self.lock_l)
         self.level_select_g.add(self.level_select_l)
@@ -165,7 +197,7 @@ class Menu(Screen):
             star_count = self._calc_stars(_i)
             self.star_count += star_count
             self.stars_l.append(
-                Button(self.screen, [self.screen.get_width(), _i * 60 + 95 - self.dy], None, star_count, 30, path='Assets/Images/star.png',
+                Button(self.levels_surface, [self.levels_surface.get_width() - 40, _i * 60], None, star_count, 30, path='Assets/Images/star.png',
                     dim=(59, 59), alignment_pos='topright')
             )
         self.stars_g.add(self.stars_l)
@@ -182,7 +214,7 @@ class Menu(Screen):
         for _i in range(self.level_amount):
             score = self._get_score(_i)
             self.high_score_l.append(
-                Button(self.screen, [self.screen.get_width() - 100, _i * 60 + 95 - self.dy], _i, round(float(score), 2), 30, alignment_pos='topright')
+                Button(self.levels_surface, [self.levels_surface.get_width() - 100, _i * 60], _i, round(float(score), 2), 30, alignment_pos='topright')
             )
         self.high_score_g.add(self.high_score_l)
     
@@ -210,6 +242,7 @@ class Menu(Screen):
         Returns:
             None
         """
+        self._render_levels_surface()
         self.slider.end_pos = [10, self.screen.get_height()]
         self.slider.update(screen_change=True)
         self.total_items_len = self.level_select_l[-1].rect.bottom - self.level_select_l[0].rect.top - self.screen.get_height() + 100
@@ -226,13 +259,7 @@ class Menu(Screen):
             None
         """
         self.screen.fill(BACKGROUND_COLOR)
-        height = self.screen.get_height()
-        to_draw = pygame.sprite.Group()
-        for sprite in self.level_select_g.sprites() + self.high_score_g.sprites() + self.stars_g.sprites() + self.lock_g.sprites():
-            if height > sprite.rect.top and sprite.rect.bottom > 95:
-                to_draw.add(sprite)
-        to_draw.draw(self.screen)
-        to_draw.update()
+        self.screen.blit(self.levels_surface, [10, 95 - self.dy])
         pygame.draw.rect(self.screen, BACKGROUND_COLOR, (0, 0, self.screen.get_width(), 95))
         self.misc_g.draw(self.screen)
         self.misc_g.update()
@@ -265,14 +292,6 @@ class Menu(Screen):
             self.slider.rect.topleft = self.slider.rect.topleft[0], self.dy * self.slider.step_size + self.slider.start_pos[1]
         else:
             self.dy = 0
-        for i, sprite in enumerate(self.level_select_l):
-            sprite.set_pos((84, i * 60 + 95 - self.dy))
-        for i, sprite in enumerate(self.high_score_l):
-            sprite.set_pos((self.screen.get_width() - 100, i * 60 + 95 - self.dy))
-        for i, sprite in enumerate(self.stars_l):
-            sprite.set_pos((self.screen.get_width() - 40, i * 60 + 93 - self.dy))
-        for i, sprite in enumerate(self.lock_l):
-            sprite.set_pos((15, INV_REQUIREMENTS[int(sprite.text)] * 60 + 95 - self.dy))
 
     def _get_score(self, i) -> float:
         """

@@ -60,6 +60,9 @@ class Button(pygame.sprite.Sprite):
     def update(self) -> None:
         text = pygame.font.Font(FONT_PATH, self.ts).render(str(self.text), True, self.text_color)
         self.surface.blit(text, text.get_rect(center=self.rect.center))
+    
+    def change_surface(self, surface: pygame.surface.Surface) -> None:
+        self.surface = surface
 
     def color_changer(self, color) -> None:
         self.image.fill(color)
@@ -243,7 +246,7 @@ class ScrollBar(pygame.sprite.Sprite):
             self.rect.right = self.pos[0]
 
 
-def draw_rect_alpha(surface, color, rect, width=4, border_radius=5):
+def draw_rect_alpha(surface, color, rect, width=8, border_radius=10):
     if pygame.Rect(rect).bottom > 0:
         shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
         pygame.draw.rect(shape_surf, color, shape_surf.get_rect(), width=width, border_radius=border_radius)
