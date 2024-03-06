@@ -15,7 +15,7 @@ SONG_PATHS = {
     8: 'Musics/Rush E.wav'
 }
 
-LENIENCY = 0.5  # seconds
+LENIENCY = 1  # seconds
 LINE_LEVEL = 0.8
 LINE_COLOR = 'black'
 

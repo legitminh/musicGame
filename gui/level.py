@@ -222,6 +222,7 @@ class Level(Screen):
         Returns:
             None
         """
+        print(f"down hit at {bucket_id}")
         for note in self.notes.get_bucket(bucket_id):
             if 0 > note.dist_from_bottom >= -LENIENCY * self.velocity and not note.key_down_awarded:
                 self.correct_hits += 1
@@ -237,7 +238,7 @@ class Level(Screen):
             int: A bucket id.
             None: If the key does not correspond to a bucket.
         """
-        for [i, j] in self.bucket_settings:
+        for [i, j] in enumerate(self.bucket_settings):
             if j[0] == key:
                 return i
         return None
@@ -262,5 +263,6 @@ class Level(Screen):
         self.total_hits += 1
         
         bucket_id = self._convert_key_to_bucket_id( event.key )
+        print(self._convert_key_to_bucket_id( event.key ), self.bucket_settings)
         if bucket_id is None: return
         self._down_hit(bucket_id)
