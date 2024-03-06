@@ -1,5 +1,6 @@
 """
 This file handels displaying the level screen.
+TODO: render segments of notes
 """
 
 
@@ -11,10 +12,6 @@ from .screen import Screen
 from constants import *
 from typing import Any
 from gui.note import NoteGroup
-
-BUCKET_NUMBER_INDEX = 0
-DURATION_INDEX = 1
-DIST_FROM_BOTTOM_INDEX = 2
 
 
 class Level(Screen):

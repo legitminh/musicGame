@@ -1,8 +1,7 @@
 import pygame
-from .interfaces import ScreenID, ExitException
+from .interfaces import ScreenID
 from typing import Callable
 from abc import abstractmethod
-from constants import FRAME_RATE
 
 
 Callback = Callable[[pygame.event.Event], None]
