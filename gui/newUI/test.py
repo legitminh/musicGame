@@ -1,6 +1,6 @@
 import pygame
 from editableTextBox import EditableTextBox
-from iterfaces import Direction, Color
+from gui.newUI.interfaces import Direction, Color
 from scrollBar import ScrollBar
 from box import Box
 from listGroup import ListGroup

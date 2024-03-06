@@ -1,13 +1,13 @@
 """
-TODO: seperate text storage from generation
-    - only render the text when absolutly nessisary
+TODO: separate text storage from generation
+    - only render the text when absolutely necessary
         - text content/properties changed
         - move text boxes if the image has not changed
     - store text in a `Text` class to handel when it needs to be rendered
 """
 import pygame
 from UI import UiElement
-from iterfaces import Color, Direction, OverflowingOptions
+from gui.newUI.interfaces import Color, Direction, OverflowingOptions
 from box import Box
 
 

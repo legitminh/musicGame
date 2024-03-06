@@ -18,7 +18,7 @@ class Button(pygame.sprite.Sprite):
                  text=None,
                  text_size=None, *,
                  color=(150, 150, 150),
-                 tcolor='black',
+                 text_color='black',
                  path='',
                  dim=(),
                  alpha=255,
@@ -29,23 +29,23 @@ class Button(pygame.sprite.Sprite):
         :param text: The text the button will display (text is the size of the button)
         :param text_size: The size of the text the button displays (controls the size of the button)
         :param color: The color of the background of the button
-        :param tcolor: The color of the text the button displays
+        :param text_color: The color of the text the button displays
         :param path: The image path
         :param dim: The size of the image
         :param alpha: The alpha value of alpha
         """
         super().__init__()
-        self.surface, self.pos, self.text, self.color, self.tcolor, self.mode_c, self.ts, self.alignment = \
-            surface, pos, text, color, tcolor, mode_c, text_size, alignment_pos
+        self.surface, self.pos, self.text, self.color, self.text_color, self.mode_c, self.ts, self.alignment = \
+            surface, pos, text, color, text_color, mode_c, text_size, alignment_pos
         if (text or text == 0) and path:
             self.rect = pygame.font.Font(FONT_PATH, self.ts).render(
-                str(self.text), True, self.tcolor).get_rect()
+                str(self.text), True, self.text_color).get_rect()
             self.image = pygame.transform.scale(pygame.image.load(path).convert_alpha(),
                                                 dim)  # resizes the image to 'dim'
             self.rect = self.image.get_rect()
         elif text or text == 0:  # needs to have 'text' and 'text_size'
             self.rect = pygame.font.Font(FONT_PATH, self.ts).render(
-                str(text), True, self.tcolor).get_rect()
+                str(text), True, self.text_color).get_rect()
             dim = self.rect.bottomright[0] - self.rect.topleft[0] + 20, self.rect.bottomright[1] - self.rect.topleft[
                 1] + 20
             self.image = pygame.Surface(dim, pygame.SRCALPHA).convert_alpha()
@@ -58,7 +58,7 @@ class Button(pygame.sprite.Sprite):
         self.set_pos(self.pos)
 
     def update(self) -> None:
-        text = pygame.font.Font(FONT_PATH, self.ts).render(str(self.text), True, self.tcolor)
+        text = pygame.font.Font(FONT_PATH, self.ts).render(str(self.text), True, self.text_color)
         self.surface.blit(text, text.get_rect(center=self.rect.center))
 
     def color_changer(self, color) -> None:

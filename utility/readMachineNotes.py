@@ -6,9 +6,9 @@ from gui.note import Note, NoteGroup
 def midi_note_extractor(which_level: int, slowdown: float, extreme: bool, velocity: float) -> tuple[float, NoteGroup]:
     notes = NoteGroup()
     multi = 1 / slowdown
-    with open(SONG_PATHS[which_level].replace("Musics", "Assets/MachineNotes").replace(".wav", ".csv")) as csvfile:
-        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        _velocity = float(csvfile.readline().strip())
+    with open(SONG_PATHS[which_level].replace("Musics", "Assets/MachineNotes").replace(".wav", ".csv")) as csv_file:
+        reader = csv.reader(csv_file, delimiter=',', quotechar='"')
+        _velocity = float(csv_file.readline().strip())
         for bucket_id, note_len, dist_to_bottom in reader:
             notes.add(
                 Note(

@@ -17,7 +17,7 @@ class Note:
         
         Args:
             bucket_number (int | float): The bucket the note belongs to.
-            note_duration (float): The duration of the note in pixles.
+            note_duration (float): The duration of the note in pixels.
             dist_from_bottom (float): The distance the note is from the line where the player can hit it.
         """
         self.bucket_number = bucket_number

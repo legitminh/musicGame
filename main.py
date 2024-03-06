@@ -3,7 +3,7 @@ This file handels entering and exiting from the program.
 
 TODO: convert mp3/wav to machine notes.
 TODO: provide more support for resizing the screen.
-TODO: balence the volume across all songs.
+TODO: balance the volume across all songs.
 """
 import json
 import pygame
@@ -77,10 +77,10 @@ def json_writer():
 
 def json_reader():
     global high_scores, volume, velocity, bucket_settings, saved_bucket_settings
-    with open('playerData.json', 'r') as openfile:
+    with open('playerData.json', 'r') as opened_file:
  
         # Reading from json file
-        json_object = json.load(openfile)
+        json_object = json.load(opened_file)
         high_scores = json_object["playerHighScores"]
         volume = json_object["volume"]
         velocity = json_object["velocity"]

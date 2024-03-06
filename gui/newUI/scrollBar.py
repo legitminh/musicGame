@@ -43,8 +43,8 @@ class ScrollBar(UiElement):
         self.display_area = self.display_area_function(*self.display_surface.get_size())
 
         self.velocity = 0
-        self.acceloration = self.effected_group.height / self.display_area
-        print(self.acceloration)
+        self.acceleration = self.effected_group.height / self.display_area
+        print(self.acceleration)
         self.dt = 0
         self.previous_time = pygame.time.get_ticks()
 
@@ -117,10 +117,10 @@ class ScrollBar(UiElement):
                     set_to = pygame.mouse.get_pos()
 
             if event.button == 4:  # scroll up
-                self.velocity -= self.acceloration * self.dt
+                self.velocity -= self.acceleration * self.dt
 
             if event.button == 5:
-                self.velocity += self.acceloration * self.dt
+                self.velocity += self.acceleration * self.dt
 
             if set_to is not None:
                 self.set_foreground_box_position(set_to)

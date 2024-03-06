@@ -1,24 +1,3 @@
-"""
-`1234567890-=
-qwertyuiop[]\
-asdfghjkl;'
-zxcvbnm,./
-K_F[1-15]
-K_SPACE
-K_BACKSPACE
-K_CAPSLOCK
-K_TAB
-K_LSHIFT
-K_RSHIFT
-K_LCTRL
-K_RCTRL
-K_UP
-K_DOWN
-K_LEFT
-K_RIGHT
-K_LALT
-K_RALT
-"""
 import mido
 import csv
 from os import listdir
@@ -69,7 +48,7 @@ def combine_buckets(compressed_notes, cutting_points):
         bucket_id = max_bucket_id + note / 100
         for i, cutting_point in enumerate(cutting_points):
             if note < cutting_point:
-                bucket_id = i + note / 100  # cuttedBucket.compressedBucket
+                bucket_id = i + note / 100
                 break
         if bucket_status_end[int(bucket_id)] > rest[1]:  # if the bucket not empty, then can't add note
             deleted_notes += 1
@@ -118,9 +97,9 @@ def get_note_instructions(mid):
 
 
 def write_to_csv(file_name, VELOCITY, notes):
-    with open(OUTPUT_DIR + file_name.replace('.mid', '.csv'), 'w', newline='') as csvfile:
-        csvfile.write(str(VELOCITY) + '\n')
-        writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    with open(OUTPUT_DIR + file_name.replace('.mid', '.csv'), 'w', newline='') as csv_file:
+        csv_file.write(str(VELOCITY) + '\n')
+        writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         writer.writerows(notes)
 
 def linear_compression(notes):

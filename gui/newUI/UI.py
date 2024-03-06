@@ -1,11 +1,11 @@
 """
-TODO: children and parrents
+TODO: children and parents
 """
 from copy import copy
 import pygame
 from typing import Any, Callable, Union
 from abc import abstractmethod, ABC
-from iterfaces import Direction
+from gui.newUI.interfaces import Direction
 
 
 class UiElement(ABC):

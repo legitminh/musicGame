@@ -26,8 +26,8 @@ class Options(Screen):
             screen (pygame.Surface): The surface that the level object will draw itself on.
             clock (pygame.time.Clock): The clock which will be used to set the maximum fps.
             **kwargs (Any): Any other arguments, will ignore all values other than `volume` and `velocity`.
-                volume (float): The volume diplayed on the scroll bar.
-                velocity (float): The velocity diplayed on the scroll bar.
+                volume (float): The volume displayed on the scroll bar.
+                velocity (float): The velocity displayed on the scroll bar.
         
         Returns:
             None

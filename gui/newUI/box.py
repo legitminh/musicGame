@@ -6,7 +6,7 @@ TODO: separate out the box, text box, and image box classes.
 """
 import pygame
 from UI import UiElement
-from iterfaces import Color, Direction
+from interfaces import Color, Direction
 from typing import Callable
 
 

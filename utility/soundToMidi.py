@@ -13,7 +13,7 @@ def process_file(file_name):
     y, sr = librosa.load(INPUT_DIR + file_name, sr=None)
     print(f"Processing \"{file_name}\"...")
     midi = wave_to_midi(y, srate=sr)
-    print(f"Writting processed file...")
+    print(f"Writing processed file...")
     with open (file_out, 'wb') as f:
         midi.writeFile(f)
 

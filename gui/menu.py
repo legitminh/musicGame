@@ -272,7 +272,7 @@ class Menu(Screen):
         for i, sprite in enumerate(self.stars_l):
             sprite.set_pos((self.screen.get_width() - 40, i * 60 + 93 - self.dy))
         for i, sprite in enumerate(self.lock_l):
-            sprite.set_pos((15, INVREQUIREMENTS[int(sprite.text)] * 60 + 95 - self.dy))
+            sprite.set_pos((15, INV_REQUIREMENTS[int(sprite.text)] * 60 + 95 - self.dy))
 
     def _get_score(self, i) -> float:
         """

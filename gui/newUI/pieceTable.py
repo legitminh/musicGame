@@ -3,7 +3,7 @@ TODO: Get UndoTree and PieceTable working
     - UndoTree has no functionality
     - PieceTable works for insertion and backspace
 """
-ORIGIONAL = True
+ORIGINAL = True
 ADD = False
 
 FILE = 0
@@ -21,16 +21,16 @@ class UndoTree:
 
 
 class PieceTable:
-    def __init__(self, origional_text) -> None:
-        self.origional = origional_text
+    def __init__(self, original_text) -> None:
+        self.original = original_text
         self.add = ""
-        self.piece_table: PIECE_TABLE = [(ORIGIONAL, 0, len(origional_text))]
+        self.piece_table: PIECE_TABLE = [(ORIGINAL, 0, len(original_text))]
         self.root_node = UndoTree(self.piece_table)
         self.current_node = self.root_node
 
     def compile(self):
         return "".join([
-            (self.origional if piece[FILE] is ORIGIONAL else self.add)
+            (self.original if piece[FILE] is ORIGINAL else self.add)
             [piece[LOCATION]: piece[LOCATION] + piece[LENGTH]] 
             for piece in self.piece_table
         ])
