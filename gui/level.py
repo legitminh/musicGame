@@ -14,12 +14,12 @@ from gui.note import NoteGroup
 
 BUCKET_NUMBER_INDEX = 0
 DURATION_INDEX = 1
-DIST_FROM_BOTOM_INDEX = 2
+DIST_FROM_BOTTOM_INDEX = 2
 
 
 class Level(Screen):
     """
-    This class handels displaying the level and player interaction.
+    This class handles displaying the level and player interaction.
     """
     slowdown: float
     volume: float
@@ -50,7 +50,7 @@ class Level(Screen):
                 volume (float): The volume the song will be played at.
                 velocity (float): The velocity the song will be played at.
                 song_id (int): The id of the song that will be played. 
-                extreme (bool): If the level will be the "extreme" varient.
+                extreme (bool): If the level will be the "extreme" variant.
                 slowdown (int | float): The amount the song will be slow downed 
                     (will run the pre-slow-downed version of the song located in the "ProcessedMusics" directory).
                 bucket_settings (dict[int, str]): The key id and key name associated with each bucket id.
@@ -127,7 +127,7 @@ class Level(Screen):
     def _render_background(self) -> None:
         """
         Renders the background of the level and stores it as a pygame surface to be displayed later.
-        This function is called at the start of a level and everytime the screen size changes.
+        This function is called at the start of a level and every time the screen size changes.
 
         Returns:
             None
@@ -136,7 +136,7 @@ class Level(Screen):
         for i in range(self.notes.num_buckets):
             bucket_width = self.screen.get_width() / self.notes.num_buckets
             ALT_PERIOD = 2 if self.notes.num_buckets < 12 else 4
-            draw_rect_alpha(self.background_surface, (ALT_COLOR if (i // ALT_PERIOD) % 2 else BACKGROUND_COLOR), [i*bucket_width , 0, (i+1)*bucket_width, self.screen.get_height()], 0)
+            draw_rect_alpha(self.background_surface, (ALT_COLOR if (i // ALT_PERIOD) % 2 else BACKGROUND_COLOR), [i*bucket_width , 0, (i+1)*bucket_width, self.screen.get_height()], 0, border_radius=0)
         
         alternate = True
         for bucket in range(self.notes.num_buckets):
@@ -147,7 +147,7 @@ class Level(Screen):
 
     def _all_note_cycle(self) -> None:
         """
-        Moves the notes down by `velocity` pixles every second.
+        Moves the notes down by `velocity` pixels every second.
 
         Returns:
             None
@@ -176,7 +176,7 @@ class Level(Screen):
             except ZeroDivisionError:
                 return Redirect(ScreenID.levelOptions, song_id=self.song_id)
         for note in self.notes:
-            if note.note_duration + note.dist_from_bottom >= -self.screen.get_height() * (1 - LINE_LEVEL): # top of note above the hititng bar
+            if note.note_duration + note.dist_from_bottom >= -self.screen.get_height() * (1 - LINE_LEVEL): # top of note above the hitting bar
                 break
             self.total_hits += 1
             self.notes.pop(0)
