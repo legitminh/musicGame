@@ -41,6 +41,7 @@ class Intro(Screen):
             Button(self.screen, [self.screen.get_width() // 2, self.screen.get_height() // 2 + 100], ScreenID.option, 'Options', 30)
         ]
         self.intro_g.add(self.intro_l)
+        self._draw()
 
     def loop(self) -> Redirect | None:
         """
@@ -58,21 +59,36 @@ class Intro(Screen):
                     raise ExitException()
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     raise ExitException()
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if event.type == pygame.VIDEORESIZE:
+                    self._video_resize()
+                    self._draw()
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     ret_val = self._button_clicked()
                     if ret_val is not None:
                         return ret_val
-            self._draw()
+            self.clock.tick(FRAME_RATE)
+
+    def _video_resize(self) -> None:
+        """
+        Updates all elements on the screen.
+        
+        Returns:
+            None
+        """
+        for i, element in enumerate(self.intro_l):
+            element.set_pos([self.screen.get_width() // 2, self.screen.get_height() // 2 + (-50, 50, 100)[i]])
+        
+        self._draw()
 
     def _draw(self) -> None:
         """
         Draws all elements onto the screen.
+        This method is only called on init and when screen size changes.
 
         Returns:
             None
         """
         self.screen.fill(BACKGROUND_COLOR)
-        self.clock.tick(FRAME_RATE)
         self.intro_g.draw(self.screen)
         self.intro_g.update()
         pygame.display.update()
@@ -88,5 +104,7 @@ class Intro(Screen):
         x, y = pygame.mouse.get_pos()
         for i, sprite in enumerate(self.intro_g.sprites()):
             if sprite.rect.collidepoint(x, y):
-                return Redirect(self.intro_l[i].mode_c)
+                redirect = Redirect(self.intro_l[i].mode_c)
+                if redirect.redirect_screen is not None:
+                    return redirect
         return None
