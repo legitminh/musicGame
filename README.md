@@ -1,2 +1,3 @@
-# musicGame
-A typing piano, a game to improve typing skill.
+# Typing Piano
+
+Typing piano is a difficult rhythm and typing game.
